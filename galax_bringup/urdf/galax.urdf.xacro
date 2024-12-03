@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot name="galax" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Include the Pioneer3DX macro -->
+  <xacro:include filename="$(find amr-ros-config)/urdf/pioneer3dx/pioneer3dx.urdf.xacro"/>
+  <!-- Include the Lidar macro -->
+  <xacro:include filename="$(find urg_node)/urdf/hokuyo_ust10.urdf.xacro"/>
+
+  <!-- Base Link -->
+  <link name="base_link"/>
+
+  <!-- Instantiate the Pioneer3DX -->
+  <xacro:pioneer3dx prefix="pioneer3dx_" parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:pioneer3dx>
+
+  <!-- Mount the diffdrive -->
+  <xacro:include filename="$(find diffdrive_arduino)/urdf/diffbot.ros2_control.xacro" />
+  <xacro:diffbot_ros2_control name="DiffBot" prefix="pioneer3dx_" />
+
+  <!-- Mount the lidar -->
+  <xacro:hokuyo_ust10_mount prefix="hokuyo_" topic="scan" parent_link="pioneer3dx_top_plate">
+    <origin xyz="0.16 0 0" rpy="0 0 0"/>
+  </xacro:hokuyo_ust10_mount>
+</robot>
