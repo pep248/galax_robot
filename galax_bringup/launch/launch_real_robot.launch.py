@@ -90,16 +90,7 @@ def generate_launch_description():
         )
     )
 
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        arguments=['-d', os.path.join(
-            get_package_share_directory(package_name),
-            'rviz',  # Folder containing RViz config (optional)
-            'view_robot.rviz')]  # Optional pre-saved RViz config file
-    ),
+
 
     # Code for delaying a node (I haven't tested how effective it is)
     #
@@ -126,6 +117,17 @@ def generate_launch_description():
         launch_arguments={
             'sensor_interface': 'ethernet'
         }.items()
+    )
+    
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        output='screen',
+        arguments=['-d', os.path.join(
+            get_package_share_directory(package_name),
+            'rviz',  # Folder containing RViz config (optional)
+            'view_robot.rviz')]  # Optional pre-saved RViz config file
     )
 
 

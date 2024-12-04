@@ -19,11 +19,11 @@ def generate_launch_description():
 
     return LaunchDescription([
             #static_transform_publisher
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            arguments=['0', '0', '0', '0', '0', '0', 'world', 'base_link']
-        ),
+        # Node(
+        #     package='tf2_ros',
+        #     executable='static_transform_publisher',
+        #     arguments=['0', '0', '0', '0', '0', '0', 'world', 'base_link']
+        # ),
             
         # Load and visualize the laser's URDF in RViz
         Node(
