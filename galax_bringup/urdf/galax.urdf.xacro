@@ -6,16 +6,16 @@
   <xacro:include filename="$(find urg_node)/urdf/hokuyo_ust10.urdf.xacro"/>
 
   <!-- Base Link -->
-  <link name="base_link"/>
+  <link name="world"/>
 
   <!-- Instantiate the Pioneer3DX -->
-  <xacro:pioneer3dx prefix="pioneer3dx_" parent="base_link">
+  <xacro:pioneer3dx prefix="pioneer3dx_" parent="world">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:pioneer3dx>
 
-  <!-- Mount the diffdrive -->
+  <!-- Add the diffdrive controler -->
   <xacro:include filename="$(find diffdrive_arduino)/urdf/diffbot.ros2_control.xacro" />
-  <xacro:diffbot_ros2_control name="DiffBot" prefix="pioneer3dx_" />
+  <xacro:diffbot_ros2_control name="DiffBot" prefix="pioneer3dx_" device="/dev/ttyACM0" baud_rate="57600"/>
 
   <!-- Mount the lidar -->
   <xacro:hokuyo_ust10_mount prefix="hokuyo_" topic="scan" parent_link="pioneer3dx_top_plate">
