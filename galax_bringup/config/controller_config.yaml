@@ -21,18 +21,11 @@ differential_controller:
     right_wheel_radius_multiplier: 1.0
 
     publish_rate: 50.0
-    odom_frame_id: odom
-    base_frame_id: base_link
+    odom_frame_id: pioneer3dx_odom
+    base_frame_id: pioneer3dx_base_link
     pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
     twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
-
-    open_loop: true
-    enable_odom_tf: true
     
-    cmd_vel_timeout: 0.5
-    use_stamped_vel: false
-
-
     open_loop: true
     enable_odom_tf: true
 

@@ -5,11 +5,8 @@
   <!-- Include the Lidar macro -->
   <xacro:include filename="$(find urg_node)/urdf/hokuyo_ust10.urdf.xacro"/>
 
-  <!-- Base Link -->
-  <link name="world"/>
-
   <!-- Instantiate the Pioneer3DX -->
-  <xacro:pioneer3dx prefix="pioneer3dx_" parent="world">
+  <xacro:pioneer3dx prefix="pioneer3dx_">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:pioneer3dx>
 
@@ -18,7 +15,7 @@
   <xacro:diffbot_ros2_control name="DiffBot" prefix="pioneer3dx_" device="/dev/ttyACM0" baud_rate="57600"/>
 
   <!-- Mount the lidar -->
-  <xacro:hokuyo_ust10_mount prefix="hokuyo_" topic="scan" parent_link="pioneer3dx_top_plate">
+  <xacro:hokuyo_ust10_mount prefix="hokuyo" topic="scan" parent_link="pioneer3dx_top_plate">
     <origin xyz="0.16 0 0" rpy="0 0 0"/>
   </xacro:hokuyo_ust10_mount>
 </robot>
