@@ -66,7 +66,7 @@ def generate_launch_description():
             default_value='true',
             description='Use ros2_control if true'),
 
-        joint_state_pub,
+        # joint_state_pub,
         node_robot_state_publisher,
         
     ])
