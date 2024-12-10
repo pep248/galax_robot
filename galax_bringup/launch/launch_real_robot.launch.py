@@ -50,9 +50,9 @@ def generate_launch_description():
     joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"], # receive the configuration from the ros2_control_node
+        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
-    delayed_joint_broad_spawner = RegisterEventHandler(
+    delayed_joint_state_broadcaster = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=ros2_controller,
             on_start=[joint_state_broadcaster],
@@ -101,7 +101,7 @@ def generate_launch_description():
     return LaunchDescription([
         robot_state_publisher,
         delayed_ros2_controller,
-        delayed_joint_broad_spawner,
+        delayed_joint_state_broadcaster,
         delayed_diff_drive_controller_spawner,
         lidar_node,
         rviz_node,

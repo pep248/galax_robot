@@ -15,25 +15,27 @@ differential_controller:
     right_wheel_names: ["pioneer3dx_right_wheel_joint"]
     wheel_separation: 0.3
     wheel_radius: 0.06
+    wheels_per_side: 1
 
     wheel_separation_multiplier: 1.0
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
 
-    publish_rate: 50.0
     odom_frame_id: pioneer3dx_odom
     base_frame_id: pioneer3dx_base_link
     pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
     twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
     
-    open_loop: false
-    enable_odom_tf: true
+    
+    open_loop: false # If set to true the odometry of the robot will be calculated from the commanded values and not from feedback.
+    position_feedback: true # Is there position feedback from hardware.
+    enable_odom_tf: true # Publish transformation between odom_frame_id and base_frame_id.
 
-    cmd_vel_timeout: 2.0
-    position_feedback: true
-    publish_limited_velocity: true
-    use_stamped_vel: false
-    #velocity_rolling_window_size: 10
+    cmd_vel_timeout: 2.0 # Timeout in seconds, after which input command on cmd_vel topic is considered staled.
+    publish_limited_velocity: false # Publish limited velocity value.
+    #velocity_rolling_window_size: 10 # Size of the rolling window for calculation of mean velocity use in odometry.
+    use_stamped_vel: false # Use stamp from input velocity message to calculate how old the command actually is.
+    publish_rate: 10.0 # Publishing rate (Hz) of the odometry and TF messages.
 
     # Velocity and acceleration limits
     # Whenever a min_* is unspecified, default to -max_*

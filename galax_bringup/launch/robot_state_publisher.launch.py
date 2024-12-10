@@ -12,9 +12,10 @@ import xacro
 
 def generate_launch_description():
 
-    # Check if we're told to use sim time
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    use_ros2_control = LaunchConfiguration('use_ros2_control')
+    # # Check if we're told to use sim time
+    # use_sim_time = LaunchConfiguration('use_sim_time')
+    # use_ros2_control = LaunchConfiguration('use_ros2_control')
+    # use_mock_hardware = LaunchConfiguration('use_mock_hardware')
 
     package_name = 'galax_bringup'
     
@@ -27,44 +28,47 @@ def generate_launch_description():
 
     
     # robot_description_config = xacro.process_file(xacro_file).toxml()
-    robot_description_config = Command(['xacro ', xacro_file,
-                                    ' use_ros2_control:=', use_ros2_control,
-                                    ' sim_mode:=', use_sim_time])
+    robot_description_config = Command(['xacro ', xacro_file,])
+                                    # ' use_ros2_control:=', use_ros2_control,
+                                    # ' sim_mode:=', use_sim_time,
+                                    # ' use_mock_hardware:=', use_mock_hardware])
     
     # Create a robot_state_publisher node
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
-        parameters=[
-            {'robot_description': robot_description_config,
-             'use_sim_time': use_sim_time}]
+        parameters=[{'robot_description': robot_description_config}]
     )
     
-    joint_state_pub = Node(
-        package="joint_state_publisher",
-        executable="joint_state_publisher",
-        name="joint_state_publisher",
-        parameters=[
-            {
-                "source_list": [
-                    "/joint_states",
-                ],
-                "rate": 30,
-            }
-        ],
-    )
+    # joint_state_pub = Node(
+    #     package="joint_state_publisher",
+    #     executable="joint_state_publisher",
+    #     name="joint_state_publisher",
+    #     parameters=[
+    #         {
+    #             "source_list": [
+    #                 "/joint_states",
+    #             ],
+    #             "rate": 30,
+    #         }
+    #     ],
+    # )
         
     # Launch!
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='false',
-            description='Use sim time if true'),
-        DeclareLaunchArgument(
-            'use_ros2_control',
-            default_value='true',
-            description='Use ros2_control if true'),
+        # DeclareLaunchArgument(
+        #     'use_sim_time',
+        #     default_value='false',
+        #     description='Use sim time if true'),
+        # DeclareLaunchArgument(
+        #     'use_ros2_control',
+        #     default_value='true',
+        #     description='Use ros2_control if true'),
+        # DeclareLaunchArgument(
+        #     'use_mock_hardware',
+        #     default_value='true',
+        #     description='Use ros2_control if true'),
 
         # joint_state_pub,
         node_robot_state_publisher,
