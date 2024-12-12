@@ -104,5 +104,5 @@ def generate_launch_description():
         delayed_joint_state_broadcaster,
         delayed_diff_drive_controller_spawner,
         lidar_node,
-        rviz_node,
+        # rviz_node,
     ])
