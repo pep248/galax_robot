@@ -13,8 +13,8 @@ differential_controller:
   ros__parameters:
     left_wheel_names: ["pioneer3dx_left_wheel_joint"]
     right_wheel_names: ["pioneer3dx_right_wheel_joint"]
-    wheel_separation: 0.3
-    wheel_radius: 0.06
+    wheel_separation: 0.30
+    wheel_radius: 0.09
     wheels_per_side: 1
 
     wheel_separation_multiplier: 1.0
