@@ -6,8 +6,8 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command
-from launch.actions import RegisterEventHandler
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.actions import RegisterEventHandler, DeclareLaunchArgument, IncludeLaunchDescription, ExecuteProcess
 from launch.event_handlers import OnProcessStart
 
 from launch_ros.actions import Node
@@ -28,41 +28,66 @@ def generate_launch_description():
                                   'use_ros2_control': 'false'}.items()
     )
 
+    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    world = os.path.join(get_package_share_directory(package_name), 'worlds', 'empty.world')
 
-    # ros2 controller manager
-    # ros2_controller will broadcast to the other controllers their configuration. It needs the robot_description parameter, which is passed via the /robot_description topic, published by the robot_state_publisher
-    # ros2_controller_params_file = os.path.join(get_package_share_directory(package_name),
-    #                                       'config',
-    #                                       'controller_config.yaml')
-    # ros2_controller = Node(
-    #     package="controller_manager",
-    #     executable="ros2_control_node",
-    #     parameters=[ros2_controller_params_file],
-    #     remappings=[('/controller_manager/robot_description', '/robot_description')],
-    # )
-    # delayed_ros2_controller = TimerAction(
-    #     period=3.0, 
-    #     actions=[ros2_controller]
-    # )
 
-    gazebo_params_file = os.path.join(get_package_share_directory(package_name),'config','gazebo_params.yaml')
+    ## Gazebo nodes
+    gz_sim = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+        launch_arguments={
+            'gz_args': '-r ' + world
+        }.items(),
+    )
 
-    # Include the Gazebo launch file, provided by the gazebo_ros package
-    gazebo = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
-                    launch_arguments={'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file}.items()
-             )
+    # Spawn
+    spawn_entity = Node(
+        package='ros_gz_sim',
+        executable='create',
+        arguments=['-topic', '/robot_description','-z','0.05'],
+        output='screen'
+    )
 
-    # Run the spawner node from the gazebo_ros package. The entity name doesn't really matter if you only have a single robot.
-    spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
-                        arguments=['-topic', 'robot_description',
-                                   '-entity', 'my_bot'],
-                        output='screen')
-    # delayed_gazebo_spawner = TimerAction(
-    #     period=5.0, 
-    #     actions=[spawn_entity]
-    # )
+    # Bridge
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+            '/model/diff_drive/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+            '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+            '/world/diff_drive_world/model/diff_drive/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model',
+            '/model/diff_drive/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V'
+        ],
+        parameters=[
+                {
+                    'qos_overrides./model/diff_drive.subscriber.reliability': 'reliable',
+                    'qos_overrides./model/diff_drive.subscriber.reliability': 'reliable'
+                }
+        ],
+        output='screen',
+        remappings=[
+            ('/model/diff_drive/odometry', '/odom'),
+            ('/model/diff_drive/pose', '/tf'),
+            ('/world/diff_drive_world/model/diff_drive/joint_state', '/joint_states'),
+        ]
+    )
+    
+    
+    
+    
+
+
+    # # Run the spawner node from the gazebo_ros package. The entity name doesn't really matter if you only have a single robot.
+    # spawn_entity = Node(package='ros_gz_sim', executable='spawn_entity.py',
+    #                     arguments=['-topic', 'robot_description',
+    #                                '-entity', 'my_bot'],
+    #                     output='screen')
+    # # delayed_gazebo_spawner = TimerAction(
+    # #     period=5.0, 
+    # #     actions=[spawn_entity]
+    # # )
         
     # joint state broadcaster
     joint_state_broadcaster = Node(
@@ -123,7 +148,8 @@ def generate_launch_description():
         joint_state_broadcaster,
         # delayed_diff_drive_controller_spawner,
         diff_drive_controller_spawner,
-        gazebo,
+        gz_sim,
+        bridge,
         # delayed_gazebo_spawner,
         spawn_entity,
         # lidar_node,
