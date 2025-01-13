@@ -25,6 +25,8 @@ find_package(std_msgs REQUIRED)
 find_package(amr-ros-config REQUIRED)
 find_package(urg_node REQUIRED)
 find_package(diffdrive_arduino REQUIRED)
+find_package(gazebo_ros REQUIRED)
+
 # find_package(ros_arduino_bridge REQUIRED)
 
 
