@@ -1,0 +1,12 @@
+[submodule "diffdrive_arduino"]
+	url = https://github.com/pep248/diffdrive_arduino
+[submodule "ros_arduino_bridge"]
+	url = https://github.com/pep248/ros_arduino_bridge
+[submodule "galax_navigation"]
+	url = https://github.com/pep248/galax_navigation
+[submodule "serial_communication"]
+	url = https://github.com/pep248/serial_communication
+[submodule "amr-ros-config"]
+	url = https://github.com/pep248/amr-ros-config
+[submodule "urg_node"]
+	url = https://github.com/pep248/urg_node
