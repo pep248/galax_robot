@@ -1,20 +1,43 @@
 <?xml version="1.0"?>
 <robot name="galax" xmlns:xacro="http://ros.org/wiki/xacro">
-  <!-- Include the Pioneer3DX macro -->
-  <xacro:include filename="$(find amr-ros-config)/urdf/pioneer3dx/pioneer3dx.urdf.xacro"/>
-  <!-- Include the Lidar macro -->
-  <xacro:include filename="$(find urg_node)/urdf/hokuyo_ust10.urdf.xacro"/>
+  <!-- Load the arguments -->
+  <xacro:arg name="use_ros2_control" default="true"/>
+  <xacro:arg name="sim_mode" default="false"/>
 
-  <!-- Instantiate the Pioneer3DX -->
-  <xacro:pioneer3dx prefix="pioneer3dx_">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:pioneer3dx>
 
+  <!-- ROBOT -->
+  <!-- Add the real robot -->
+  <xacro:unless value="$(arg sim_mode)">
+    <!-- Instantiate the Pioneer3DX -->
+    <xacro:include filename="$(find amr-ros-config)/urdf/pioneer3dx/pioneer3dx.urdf.xacro"/>
+    <xacro:pioneer3dx prefix="pioneer3dx_">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:pioneer3dx>
+  </xacro:unless>
+  <!-- Or the simulated robot -->
+  <xacro:if value="$(arg sim_mode)">
+    <!-- Instantiate the Pioneer3DX -->
+    <xacro:include filename="$(find amr-ros-config)/urdf/pioneer3dx/pioneer3dx_sim.urdf.xacro"/>
+    <xacro:pioneer3dx prefix="pioneer3dx_">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:pioneer3dx>
+  </xacro:if>
+
+  <!-- CONTROLLER -->
   <!-- Add the diffdrive controler -->
-  <xacro:include filename="$(find diffdrive_arduino)/urdf/diffbot.ros2_control.xacro" />
-  <xacro:diffbot_ros2_control name="DiffBot" prefix="pioneer3dx_" device="/dev/ttyACM0" baud_rate="57600"/>
+  <xacro:unless value="$(arg sim_mode)">
+    <xacro:include filename="$(find diffdrive_arduino)/urdf/diffbot.ros2_control.xacro" />
+    <xacro:diffbot_ros2_control name="DiffBot" prefix="pioneer3dx_" device="/dev/ttyACM0" baud_rate="57600"/>
+  </xacro:unless>
+  <!-- Or the Gazebo plugin -->
+  <xacro:if value="$(arg sim_mode)">
+    <xacro:include filename="$(find amr-ros-config)/urdf/pioneer3dx/gazebo_control.xacro"/>
+    <xacro:pioneer3dx_gazebo_control prefix="pioneer3dx_"/>
+  </xacro:if>
 
+  <!-- LIDAR -->
   <!-- Mount the lidar -->
+  <xacro:include filename="$(find urg_node)/urdf/hokuyo_ust10.urdf.xacro"/>
   <xacro:hokuyo_ust10_mount prefix="hokuyo" topic="scan" parent_link="pioneer3dx_top_plate">
     <origin xyz="0.16 0 0" rpy="0 0 0"/>
   </xacro:hokuyo_ust10_mount>
