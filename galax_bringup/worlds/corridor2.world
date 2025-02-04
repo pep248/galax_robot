@@ -71,7 +71,7 @@
     <atmosphere type='adiabatic'/>
     <physics type='ode'>
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1</real_time_factor>
+      <real_time_factor>1.0</real_time_factor>
       <real_time_update_rate>1000</real_time_update_rate>
     </physics>
     <scene>
@@ -455,18 +455,18 @@
       <static>1</static>
     </model>
     <state world_name='default'>
-      <sim_time>1134 451000000</sim_time>
-      <real_time>400 462252438</real_time>
-      <wall_time>1737550671 577063801</wall_time>
-      <iterations>302410</iterations>
+      <sim_time>1222 427000000</sim_time>
+      <real_time>95 845663209</real_time>
+      <wall_time>1737614991 974376527</wall_time>
+      <iterations>87976</iterations>
       <model name='Construction Barrel'>
-        <pose>18.6374 -0.209942 -2e-06 7e-06 -2e-06 -7e-06</pose>
+        <pose>-16.7748 -0.541153 -2e-06 1e-06 8e-06 -1.7e-05</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>18.6374 -0.209942 -2e-06 7e-06 -2e-06 -7e-06</pose>
+          <pose>-16.7748 -0.541153 -2e-06 1e-06 8e-06 -1.7e-05</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>4.8546 -7.38532 5.31569 -0.383561 -0.353792 -0.029458</acceleration>
-          <wrench>2427.3 -3692.66 2657.84 0 -0 0</wrench>
+          <acceleration>3.11246 5.39069 -1.78777 -0.927017 1.50745 6.7e-05</acceleration>
+          <wrench>1556.23 2695.34 -893.885 0 -0 0</wrench>
         </link>
       </model>
       <model name='Stop Sign'>
@@ -815,8 +815,8 @@
         <link name='link'>
           <pose>19.018 -1.26344 0.149 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 -1.9e-05 0 0.000128 2e-06 0</acceleration>
-          <wrench>1e-06 -3.8e-05 1e-06 0 -0 0</wrench>
+          <acceleration>-0 -1.9e-05 0 0.000128 -2e-06 0</acceleration>
+          <wrench>-1e-06 -3.8e-05 1e-06 0 -0 0</wrench>
         </link>
       </model>
       <model name='ground_plane'>
@@ -850,17 +850,17 @@
         </link>
       </model>
       <model name='unit_cylinder'>
-        <pose>-5.68461 0.244658 0.499997 3e-06 4e-06 -0</pose>
+        <pose>-5.68461 0.244658 0.499997 3e-06 3e-06 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>-5.68461 0.244658 0.499997 3e-06 4e-06 -0</pose>
+          <pose>-5.68461 0.244658 0.499997 3e-06 3e-06 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
+          <acceleration>0 0 -9.8 0 -0 0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0</wrench>
         </link>
       </model>
       <model name='world2'>
-        <pose>4.72615 6.81622 0 0 -0 0</pose>
+        <pose>4.7262 6.81622 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='Wall_12'>
           <pose>-19.9724 2.14122 0 0 -0 1.5708</pose>
@@ -3020,7 +3020,7 @@
     </model>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-0.3732 -6.44223 25.9263 -0 1.2458 1.45215</pose>
+        <pose>-36.3585 -0.99535 37.3813 0 0.9658 -0.559852</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
