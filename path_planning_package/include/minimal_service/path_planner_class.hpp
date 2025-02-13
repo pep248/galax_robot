@@ -61,6 +61,11 @@ class PathPlanningServer : public rclcpp::Node
         float y_offset;
         
 
+        bool is_point_in_polygon(
+            double x, 
+            double y, 
+            const std::vector<std::pair<double, double>>& vertices);
+
 
 };
 

@@ -1,8 +1,7 @@
 #include <minimal_service/path_planner_class.hpp>
 
 
-PathPlanningServer::PathPlanningServer()
-  : Node("path_planning_server")
+PathPlanningServer::PathPlanningServer() : Node("path_planning_server")
 {
   service_ = this->create_service<custom_interfaces::srv::PathFromGoal>(
     "path_planning_server",
@@ -39,12 +38,31 @@ void PathPlanningServer::handle_request(
       // Extract the goal from the request
       geometry_msgs::msg::PointStamped goal = request->goal;
 
+      // Define the polygon vertices that represent the valid area
+      std::vector<std::pair<double, double>> vertices = {
+        {27.97408676147461, 0.036153316497802734},
+        {27.88904571533203, -1.3325400352478027},
+        {-19.40673828125, -0.9108824133872986},
+        {-19.16746711730957, 13.490667343139648},
+        {-17.890111923217773, 13.597461700439648},
+        {-17.834320068359375, 1.0934691429138184}
+    };
+
+      if(!this->is_point_in_polygon(goal.point.x, goal.point.y, vertices))
+      {
+        RCLCPP_ERROR(this->get_logger(), "Goal is not in the valid area.");
+        return;
+      }
+
+
       geometry_msgs::msg::PointStamped goal_index = this->world_to_map(
         goal.point.x, 
         goal.point.y, 
         this->resolution, 
         this->x_offset, 
         this->y_offset);
+
+      RCLCPP_INFO(this->get_logger(), "Goal index = %f, %f", goal_index.point.x, goal_index.point.y);
       
       geometry_msgs::msg::PointStamped init_index = this->world_to_map(
         0.0, 
@@ -53,10 +71,41 @@ void PathPlanningServer::handle_request(
         this->x_offset, 
         this->y_offset);
 
+      RCLCPP_INFO(this->get_logger(), "Init index = %f, %f", init_index.point.x, init_index.point.y);
+
+      RCLCPP_INFO(this->get_logger(), "Computing cost_map");
 
       this->update_cost_map(
         goal_index.point.x,
         goal_index.point.y);
+
+      // int width = this->map.size();
+      // int height = this->map[0].size();
+
+      // Print the map data
+      // for (int i = 0; i < height; ++i)
+      // {
+      //   for (int j = 0; j < width; ++j)
+      //   {
+      //       if (i % 10 == 0 && j % 10 == 0)
+      //       { // Print every 10th row and column
+      //           RCLCPP_INFO(this->get_logger(), "cost_map[%d][%d] = %d", i, j, this->cost_map[i][j]);
+      //       }
+      //   }
+      // }   
+
+      // int height = this->map.size();
+      // int width = this->map[0].size();
+      // for (int i = 0; i < height; ++i)
+      // {
+      //   for (int j = 0; j < width; ++j)
+      //   {
+      //       if (i % 10 == 0 && j % 10 == 0)
+      //       { // Print every 10th row and column
+      //           RCLCPP_INFO(this->get_logger(), "cost_map[%d][%d] = %d", i, j, this->cost_map[i][j]);
+      //       }
+      //   }
+      // }   
 
       std::vector<std::vector<int>> index_path = this->find_path_in_costpam(
         init_index.point.x,
@@ -81,11 +130,24 @@ void PathPlanningServer::handle_request(
           path.poses.push_back(pose);
       }
 
+      // Take only 1 out of each 50 entries in the path
+      nav_msgs::msg::Path reduced_path;
+      reduced_path.header = path.header;
+      for (size_t i = 0; i < path.poses.size(); i += 50)
+      {
+          reduced_path.poses.push_back(path.poses[i]);
+      }
+      // Make sure that the goal is in the path (even if repeated)
+      reduced_path.poses.push_back(path.poses[path.poses.size()-1]);
+      reduced_path.poses.erase(reduced_path.poses.begin());
+      
       // Publish the path
-      path_publisher_->publish(path);
+      path_publisher_->publish(reduced_path);
 
       // Fill the response with the generated path
-      response->path = path;
+      response->path = reduced_path;
+      RCLCPP_INFO(this->get_logger(), "Path found with %ld entries", reduced_path.poses.size());
+
     }
 }
 
@@ -102,26 +164,28 @@ void PathPlanningServer::map_callback(
   this->y_offset = msg->info.origin.position.y;
 
   // Resize the class member "map" to the required dimensions
-  this->map.resize(height, std::vector<int>(width));
+  this->map.resize(width, std::vector<int>(height));
 
   // Fill the 2D grid with map data from the OccupancyGrid message
-  for (int i = 0; i < height; ++i)
+  // Fill the 2D grid with map data from the OccupancyGrid message
+  for (int i = 0; i < width; ++i)
   {
-      for (int j = 0; j < width; ++j)
+      for (int j = 0; j < height; ++j)
       {
           // Calculate the 1D index in the map data
-          int index = i * width + j;
+          int index = j * width + i;
           this->map[i][j] = msg->data[index];  // Store in the class member "map"
       }
   }
+
   RCLCPP_INFO(this->get_logger(), "Map data received and stored.");
 
   // Loop over the map and adjust the state of points within 0.5 meters of a "100" cell
   int radius_in_cells = static_cast<int>(0.5 / resolution);  // Convert 0.5 meters to grid cells
 
-  for (int i = 0; i < height; ++i)
+  for (int i = 0; i < width; ++i)
   {
-      for (int j = 0; j < width; ++j)
+      for (int j = 0; j < height; ++j)
       {
           if (this->map[i][j] == 100) // If the current point is occupied (100)
           {
@@ -134,12 +198,12 @@ void PathPlanningServer::map_callback(
                       int nj = j + dj;
 
                       // Check if the new indices are within bounds of the map
-                      if (ni >= 0 && ni < height && nj >= 0 && nj < width)
+                      if (ni >= 0 && ni < width && nj >= 0 && nj < height)
                       {
-                          // If the cell is free (0), change its state to 80
+                          // If the cell is free (0), change its state to 1
                           if (this->map[ni][nj] == 0)
                           {
-                            this->map[ni][nj] = 10;
+                            this->map[ni][nj] = 1;
                           }
                       }
                   }
@@ -149,17 +213,17 @@ void PathPlanningServer::map_callback(
   }
 
 
-
-  for (int i = 0; i < height; ++i)
-  {
-    for (int j = 0; j < width; ++j)
-    {
-        if (i % 10 == 0 && j % 10 == 0)
-        { // Print every 10th row and column
-            RCLCPP_INFO(this->get_logger(), "map[%d][%d] = %d", i, j, this->map[i][j]);
-        }
-    }
-  }   
+  // // Print the map data
+  // for (int i = 0; i < height; ++i)
+  // {
+  //   for (int j = 0; j < width; ++j)
+  //   {
+  //       if (i % 10 == 0 && j % 10 == 0)
+  //       { // Print every 10th row and column
+  //           RCLCPP_INFO(this->get_logger(), "map[%d][%d] = %d", i, j, this->map[i][j]);
+  //       }
+  //   }
+  // }   
 
 }
 
@@ -198,29 +262,29 @@ void PathPlanningServer::update_cost_map(
   const int x_index,
   const int y_index)
 {
-  int height = this->map.size();
-  int width = this->map[0].size();
+  int width = this->map.size(); //TEST
+  int height = this->map[0].size(); //TEST
  
   // Resize the class member "cost_map" to the required dimensions
-  cost_map.resize(height, std::vector<int>(width));
+  this->cost_map.resize(width, std::vector<int>(height));
 
   // Fill the cost_map with the map data
-  for (int i = 0; i < height; ++i)
+  for (int i = 0; i < width; ++i)
   {
-      for (int j = 0; j < width; ++j)
+      for (int j = 0; j < height; ++j)
       {
         this->cost_map[i][j] = this->map[i][j];  // Store in the class member "cost_map"
       }
   }
 
   // iterate through each cell of the costmap and add the distance between the current cell and the goal cell
-  for (int i = 0; i < height; ++i)
+  for (int i = 0; i < width; ++i)
   {
-      for (int j = 0; j < width; ++j)
+      for (int j = 0; j < height; ++j)
       {
           // Calculate the distance between the current cell and the goal cell
           int distance = std::abs(i - x_index) + std::abs(j - y_index);
-          this->cost_map[i][j] = this->cost_map[i][j] + distance;  // Store in the class member "cost_map"
+          this->cost_map[i][j] = this->cost_map[i][j] + distance*2;  // Store in the class member "cost_map"
       }
   }
 }
@@ -231,66 +295,136 @@ std::vector<std::vector<int>> PathPlanningServer::find_path_in_costpam(
   const int start_y_index,
   const int goal_x_index,
   const int goal_y_index)
-  {
+{
     std::vector<std::vector<int>> index_path;
-    std::vector<std::vector<int>> queue;
 
     // Add the start cell to the queue
-    queue.push_back({start_x_index, start_y_index});
+    std::vector<int> start_cell = {start_x_index, start_y_index};
 
+    index_path.push_back(start_cell);
+
+    // Create goal cell vector for comparison
+    std::vector<int> goal_cell = {goal_x_index, goal_y_index};
+
+    RCLCPP_INFO(this->get_logger(), "start_cell = %d, %d", start_cell[0], start_cell[1]);
+    RCLCPP_INFO(this->get_logger(), "goal_cell = %d, %d", goal_cell[1], goal_cell[1]);
+
+    int width = this->map.size();
+    int height = this->map[0].size();
 
     // While goal not in index_path
-    while (std::find(index_path.begin(), index_path.end(), {goal_x_index, goal_y_index}) == index_path.end())
+    while (std::find(index_path.begin(), index_path.end(), goal_cell) == index_path.end())
     {
-      // Get the first element from the queue
-      std::vector<int> current_cell = queue[0];
-      queue.erase(queue.begin());
+        // Get the first element from the queue
+        std::vector<int> current_cell = index_path.back();
 
-      // Add the current cell to the index_path
-      index_path.push_back(current_cell);
+        
+        // Get the neighbors of the current cell
+        std::vector<std::vector<int>> neighbors = {
+            {current_cell[0] - 1, current_cell[1]},
+            {current_cell[0] + 1, current_cell[1]},
+            {current_cell[0], current_cell[1] - 1},
+            {current_cell[0], current_cell[1] + 1}
+        };
 
-      // Get the neighbors of the current cell
-      std::vector<std::vector<int>> neighbors = {
-          {current_cell[0] - 1, current_cell[1]},
-          {current_cell[0] + 1, current_cell[1]},
-          {current_cell[0], current_cell[1] - 1},
-          {current_cell[0], current_cell[1] + 1}
-      };
-
-      // Loop over the neighbors
-      for (auto neighbor : neighbors)
-      {
-          // Check if the neighbor is within the bounds of the map
-          if (neighbor[0] >= 0 && neighbor[0] < this->map.size() && neighbor[1] >= 0 && neighbor[1] < this->map[0].size())
-          {
-              // Check if the neighbor is not an obstacle
-              if (this->map[neighbor[0]][neighbor[1]] != 100)
-              {
-                  // Check if the neighbor is not already in the index_path
-                  if (std::find(index_path.begin(), index_path.end(), neighbor) == index_path.end())
-                  {
-                      // Check if the neighbor is not already in the queue
-                      if (std::find(queue.begin(), queue.end(), neighbor) == queue.end())
-                      {
-                          // Add the neighbor to the queue
-                          queue.push_back(neighbor);
-                      }
-                  }
-              }
-          }
-      }
-
-      // sort the queue putting at the beggining the cell with the lowest cost in the cost_map
-      std::sort(
-        queue.begin(), queue.end(), [this](std::vector<int> a, std::vector<int> b)
+        std::vector<int> min_neighbor = {};
+        int min_cost = std::numeric_limits<int>::max();
+        // RCLCPP_INFO(this->get_logger(), "width: %d, height: %d", width, height);
+        for (const auto& neighbor : neighbors)
         {
-          return this->cost_map[a[0]][a[1]] < this->cost_map[b[0]][b[1]];
+            // Check if the neighbor is already in the index_path
+            if (std::find(index_path.begin(), index_path.end(), neighbor) != index_path.end())
+            {
+                continue;
+            }
+            // RCLCPP_INFO(this->get_logger(), "cost: %d, neighbor: %d, %d", this->cost_map[neighbor[0]][neighbor[1]], neighbor[0], neighbor[1]);
+            // Find cheapest neighbor in the cost_map
+            if (neighbor[0] >= 0 && neighbor[1] >= 0 && 
+                neighbor[0] < width && neighbor[1] < height &&
+                this->cost_map[neighbor[0]][neighbor[1]] < min_cost)
+            {
+                // RCLCPP_INFO(this->get_logger(), "min_neighbor %d, %d", neighbor[0], neighbor[1]);
+                min_cost = this->cost_map[neighbor[0]][neighbor[1]];
+                min_neighbor = neighbor;
+            }
         }
-      );
+
+        // Add the neighbor to the index_path
+        index_path.push_back(min_neighbor);
+        // RCLCPP_INFO(this->get_logger(), "Neighbor added= %d, %d", min_neighbor[0], min_neighbor[1]);
+
+        // // Loop over the neighbors
+        // for (auto neighbor : neighbors)
+        // {
+        //   int row = neighbor[0];
+        //   int col = neighbor[1];
+        //   // RCLCPP_INFO(this->get_logger(), "Evaluated Neighbor = %d, %d", neighbor[0], neighbor[1]);
+        //   // Check if the neighbor is within the bounds of the map
+        //   // RCLCPP_INFO(this->get_logger(), "width = %d, height = %d", width, height);
+        //   if (row >= 0 && col >= 0 && row < width && col < height)
+        //   {
+        //     // RCLCPP_INFO(this->get_logger(), "Neighbor is in the map");
+        //     // Check if the neighbor is not an obstacle
+        //     // RCLCPP_INFO(this->get_logger(), "map = %d", this->map[col][row]);
+        //     if (this->map[col][row] != 100)
+        //     {
+        //       // RCLCPP_INFO(this->get_logger(), "Neighbor is not an obstacle");
+        //       // Check if the neighbor is not already in the index_path
+        //       if (std::find(index_path.begin(), index_path.end(), neighbor) == index_path.end())
+        //       {
+        //         // RCLCPP_INFO(this->get_logger(), "Neighbor not already in path");
+        //         // Check if the neighbor is not already in the queue
+        //         if (std::find(queue.begin(), queue.end(), neighbor) == queue.end())
+        //         {
+        //           // RCLCPP_INFO(this->get_logger(), "Neighbor not already in queue");
+        //           // Add the neighbor to the queue
+        //           queue.push_back(neighbor);
+        //           RCLCPP_INFO(this->get_logger(), "Neighbor added= %d, %d", neighbor[0], neighbor[1]);
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+
+        // // sort the queue putting at the beggining the cell with the lowest cost in the cost_map
+        // std::sort(queue.begin(), queue.end(), 
+        //     [this](const std::vector<int>& a, const std::vector<int>& b) {
+        //         return this->cost_map[a[1]][a[0]] < this->cost_map[b[1]][b[0]];
+        //     }
+        // );
+        // Print the queue cost_map cost
+        // for (auto cell : queue)
+        // {
+        //   RCLCPP_INFO(this->get_logger(), "Queue cost_map cost = %d", this->cost_map[cell[1]][cell[0]]);
+        // }
+
     }
 
     return index_path;
+}
 
+
+
+// Add this helper function to your class
+bool PathPlanningServer::is_point_in_polygon(
+  double x,
+  double y, 
+  const std::vector<std::pair<double, double>>& vertices) 
+{
+  bool inside = false;
+  int j = vertices.size() - 1;
+  
+  for (int i = 0; i < int(vertices.size()); i++) {
+      if ((vertices[i].second > y) != (vertices[j].second > y) &&
+          (x < (vertices[j].first - vertices[i].first) * (y - vertices[i].second) /
+                  (vertices[j].second - vertices[i].second) + vertices[i].first)) {
+          inside = !inside;
+      }
+      j = i;
   }
+  
+  return inside;
+}
+
 
 
