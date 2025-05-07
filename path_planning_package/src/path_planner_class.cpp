@@ -1,24 +1,32 @@
-#include <minimal_service/path_planner_class.hpp>
+#include <path_planning_package/path_planner_class.hpp>
 
 
 PathPlanningServer::PathPlanningServer() : Node("path_planning_server")
 {
   service_ = this->create_service<custom_interfaces::srv::PathFromGoal>(
     "path_planning_server",
-    std::bind(&PathPlanningServer::handle_request, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    std::bind(
+      &PathPlanningServer::handle_request,
+      this, 
+      std::placeholders::_1, 
+      std::placeholders::_2, 
+      std::placeholders::_3));
 
   // Create the subscriber with a custom QoS profile
   rclcpp::QoS qos_profile(rclcpp::KeepLast(1));
   qos_profile.durability(rclcpp::DurabilityPolicy::TransientLocal);  // Match the publisher's durability
 
-  subscription_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
+  map_subscription_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
       "/map", qos_profile,
-      std::bind(&PathPlanningServer::map_callback, this, std::placeholders::_1));
+      std::bind(
+        &PathPlanningServer::map_callback, 
+        this, 
+        std::placeholders::_1));
 
   // Create a publisher to visualize the path
   path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("/path", 10);
-}
 
+}
 
 void PathPlanningServer::handle_request(
   const std::shared_ptr<rmw_request_id_t> request_header,
@@ -38,21 +46,21 @@ void PathPlanningServer::handle_request(
       // Extract the goal from the request
       geometry_msgs::msg::PointStamped goal = request->goal;
 
-      // Define the polygon vertices that represent the valid area
-      std::vector<std::pair<double, double>> vertices = {
-        {27.97408676147461, 0.036153316497802734},
-        {27.88904571533203, -1.3325400352478027},
-        {-19.40673828125, -0.9108824133872986},
-        {-19.16746711730957, 13.490667343139648},
-        {-17.890111923217773, 13.597461700439648},
-        {-17.834320068359375, 1.0934691429138184}
-    };
+    //   // Define the polygon vertices that represent the valid area
+    //   std::vector<std::pair<double, double>> vertices = {
+    //     {27.97408676147461, 0.036153316497802734},
+    //     {27.88904571533203, -1.3325400352478027},
+    //     {-19.40673828125, -0.9108824133872986},
+    //     {-19.16746711730957, 13.490667343139648},
+    //     {-17.890111923217773, 13.597461700439648},
+    //     {-17.834320068359375, 1.0934691429138184}
+    // };
 
-      if(!this->is_point_in_polygon(goal.point.x, goal.point.y, vertices))
-      {
-        RCLCPP_ERROR(this->get_logger(), "Goal is not in the valid area.");
-        return;
-      }
+    //   // if(!this->is_point_in_polygon(goal.point.x, goal.point.y, vertices))
+    //   // {
+    //   //   RCLCPP_ERROR(this->get_logger(), "Goal is not in the valid area.");
+    //   //   return;
+    //   // }
 
 
       geometry_msgs::msg::PointStamped goal_index = this->world_to_map(
@@ -147,7 +155,7 @@ void PathPlanningServer::handle_request(
       // Fill the response with the generated path
       response->path = reduced_path;
       RCLCPP_INFO(this->get_logger(), "Path found with %ld entries", reduced_path.poses.size());
-
+      
     }
 }
 
@@ -404,7 +412,6 @@ std::vector<std::vector<int>> PathPlanningServer::find_path_in_costpam(
 }
 
 
-
 // Add this helper function to your class
 bool PathPlanningServer::is_point_in_polygon(
   double x,
@@ -425,6 +432,4 @@ bool PathPlanningServer::is_point_in_polygon(
   
   return inside;
 }
-
-
 

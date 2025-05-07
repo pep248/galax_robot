@@ -15,7 +15,8 @@ ament_auto_find_build_dependencies()
 # Add the service server executable
 ament_auto_add_executable(path_planning_server
   src/path_planner_node.cpp
-  src/path_planner_class.cpp) # dependencies
+  src/path_planner_class.cpp
+  src/goal_receiver_class.cpp) # dependencies) # dependencies
 # Install the executable
 install(TARGETS path_planning_server
   DESTINATION lib/${PROJECT_NAME}
