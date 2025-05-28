@@ -18,13 +18,13 @@ GoalReceiver::GoalReceiver() : Node("goal_receiver")
   goal_subscription_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
       "/goal_pose", 10,
       std::bind(
-        &GoalReceiver::goal_callback, 
+        &GoalReceiver::goalCallback, 
         this, 
         std::placeholders::_1));
 }
 
 
-void GoalReceiver::goal_callback(
+void GoalReceiver::goalCallback(
   const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 {
   RCLCPP_INFO(this->get_logger(), "Received goal pose: x = %f, y = %f", msg->pose.position.x, msg->pose.position.y);

@@ -3,7 +3,13 @@
 
 PathPlanningServer::PathPlanningServer() : Node("path_planning_server")
 {
-  service_ = this->create_service<custom_interfaces::srv::PathFromGoal>(
+  this->tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+  this->tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+  this->robot_pose_timer_ = this->create_wall_timer(
+      std::chrono::milliseconds(100),
+      std::bind(&PathPlanningServer::robotPoseCallback, this));
+
+  this->service_ = this->create_service<custom_interfaces::srv::PathFromGoal>(
     "path_planning_server",
     std::bind(
       &PathPlanningServer::handle_request,
@@ -16,7 +22,7 @@ PathPlanningServer::PathPlanningServer() : Node("path_planning_server")
   rclcpp::QoS qos_profile(rclcpp::KeepLast(1));
   qos_profile.durability(rclcpp::DurabilityPolicy::TransientLocal);  // Match the publisher's durability
 
-  map_subscription_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
+  this->map_subscription_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
       "/map", qos_profile,
       std::bind(
         &PathPlanningServer::map_callback, 
@@ -24,9 +30,29 @@ PathPlanningServer::PathPlanningServer() : Node("path_planning_server")
         std::placeholders::_1));
 
   // Create a publisher to visualize the path
-  path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("/path", 10);
+  this->path_publisher_ = this->create_publisher<nav_msgs::msg::Path>("/path", 10);
 
 }
+
+
+// Robot pose callback
+void PathPlanningServer::robotPoseCallback()
+{
+    // Get the robot pose from the transform listener
+    
+    while (!tf_buffer_->canTransform("map", "pioneer3dx_base_link", rclcpp::Time(0), rclcpp::Duration::from_seconds(1.0))) {
+        RCLCPP_INFO(this->get_logger(), "Waiting for transform map -> pioneer3dx_base_link...");
+        rclcpp::sleep_for(std::chrono::milliseconds(1000));
+    }
+    geometry_msgs::msg::TransformStamped transform;
+    transform = tf_buffer_->lookupTransform("map", "pioneer3dx_base_link", rclcpp::Time(0), rclcpp::Duration::from_seconds(1.0));
+    this->robot_pose.x = transform.transform.translation.x;
+    this->robot_pose.y = transform.transform.translation.y;
+
+    this->pose_received = true;
+}
+
+
 
 void PathPlanningServer::handle_request(
   const std::shared_ptr<rmw_request_id_t> request_header,
@@ -39,6 +65,11 @@ void PathPlanningServer::handle_request(
     if (map.empty()) {
         RCLCPP_ERROR(this->get_logger(), "Map data not available. Please wait for the map callback to populate the map.");
         return;
+    }
+    else if( this->pose_received == false)
+    {
+      RCLCPP_ERROR(this->get_logger(), "Robot pose not received yet.");
+      return;
     }
     else
     {
@@ -73,8 +104,8 @@ void PathPlanningServer::handle_request(
       RCLCPP_INFO(this->get_logger(), "Goal index = %f, %f", goal_index.point.x, goal_index.point.y);
       
       geometry_msgs::msg::PointStamped init_index = this->world_to_map(
-        0.0, 
-        0.0, 
+        this->robot_pose.x, 
+        this->robot_pose.y, 
         this->resolution, 
         this->x_offset, 
         this->y_offset);

@@ -1,13 +1,22 @@
 #ifndef PATH_PLANNING_SERVER_HPP_
 #define PATH_PLANNING_SERVER_HPP_
 
+// ===== ROS-specific imports =====
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/qos.hpp"
-#include "custom_interfaces/srv/path_from_goal.hpp"
+
+#include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
+
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
+#include <tf2/utils.h>
+
+// ===== Custom parameters and project-specific headers =====
+#include "custom_interfaces/srv/path_from_goal.hpp"
 
 
 class PathPlanningServer : public rclcpp::Node
@@ -16,6 +25,15 @@ class PathPlanningServer : public rclcpp::Node
         PathPlanningServer();
 
     private:
+
+        //TF2
+        std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+        std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+        rclcpp::TimerBase::SharedPtr robot_pose_timer_;
+        geometry_msgs::msg::Pose2D robot_pose;
+        void robotPoseCallback();
+        bool pose_received = false;
+
         // Server
         rclcpp::Service<custom_interfaces::srv::PathFromGoal>::SharedPtr service_;
 

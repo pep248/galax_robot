@@ -21,7 +21,7 @@ class GoalReceiver : public rclcpp::Node
         // Subscribers
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_subscription_;
 
-        void goal_callback(
+        void goalCallback(
             const geometry_msgs::msg::PoseStamped::SharedPtr msg);
 };
 
