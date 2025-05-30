@@ -30,7 +30,7 @@ def generate_launch_description():
             package="twist_mux",
             executable="twist_mux",
             parameters=[twist_mux_params, {'use_sim_time': True}],
-            remappings=[('/cmd_vel_out','/differential_controller/cmd_vel_unstamped')]
+            remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
         )
 
     gazebo_params_file = os.path.join(get_package_share_directory(package_name),'config','gazebo_params.yaml')
@@ -52,13 +52,13 @@ def generate_launch_description():
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["differential_controller"],
+        arguments=["diff_cont"],
     )
 
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster"],
+        arguments=["joint_broad"],
     )
 
 

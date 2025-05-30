@@ -31,7 +31,7 @@ def generate_launch_description():
         output='screen',
         prefix='xterm -e',
         remappings=[
-            ('/cmd_vel', '/differential_controller/cmd_vel_unstamped'),
+            ('/cmd_vel', '/diff_cont/cmd_vel_unstamped'),
         ]
     )
 

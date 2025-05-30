@@ -1,29 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-    <xacro:macro name="pioneer3dx_gazebo_control" params="prefix">
-        <gazebo>
-            <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
-
-                <!-- Wheel Information -->
-                <left_joint>${prefix}left_wheel_joint</left_joint>
-                <right_joint>${prefix}right_wheel_joint</right_joint>
-                <wheel_separation>0.30</wheel_separation>
-                <wheel_diameter>0.18</wheel_diameter>
-
-                <!-- Limits -->
-                <max_wheel_torque>200</max_wheel_torque>
-                <max_wheel_acceleration>10.0</max_wheel_acceleration>
-
-                <!-- Output -->
-                <odometry_frame>${prefix}odom</odometry_frame>
-                <robot_base_frame>${prefix}base_link</robot_base_frame>
-
-                <publish_odom>true</publish_odom>
-                <publish_odom_tf>true</publish_odom_tf>
-                <publish_wheel_tf>true</publish_wheel_tf>
-
-            </plugin>
-        </gazebo>
+    <xacro:macro name="gazebo_control" params="prefix">
 
         <ros2_control name="GazeboSystem" type="system">
             <hardware>
@@ -49,8 +26,8 @@
 
         <gazebo>
             <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
-                <parameters>$(find amr-ros-config)/config/controller_config.yaml</parameters>
-				<parameters>$(find amr-ros-config)/config/gaz_ros2_ctl_use_sim.yaml</parameters>
+                <parameters>$(find galax_description)/config/my_controllers.yaml</parameters>
+				<parameters>$(find galax_description)/config/gaz_ros2_ctl_use_sim.yaml</parameters>
             </plugin>
         </gazebo>
 

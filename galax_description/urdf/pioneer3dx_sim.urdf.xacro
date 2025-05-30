@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
-	<xacro:include filename="$(find amr-ros-config)/urdf/materials.xacro"/>
-	<xacro:include filename="$(find amr-ros-config)/urdf/inertial_macros.xacro"/>
 
-	<xacro:macro name="pioneer3dx" params="prefix *origin">
+    <xacro:include filename="$(find galax_description)/urdf/materials.xacro"/>
+	<xacro:include filename="$(find galax_description)/urdf/inertial_macros.xacro"/>
 
-		<link name="${prefix}base_link">
-    	</link>
+    <xacro:macro name="pioneer3dx" params="prefix *origin">
 
 		<!-- Chassis -->
 		<xacro:property name="chassis_length" value="0.41"/>
@@ -17,65 +15,63 @@
 		<xacro:property name="top_plate_length" value="0.41"/>
 		<xacro:property name="top_plate_width" value="0.272"/>
 		<xacro:property name="top_plate_height" value="0.0052"/>
-		<xacro:property name="top_plate_mass" value="0.1"/>
+		<xacro:property name="top_plate_mass" value="0.01"/>
 		<!-- Wheels -->
 		<xacro:property name="wheel_radius" value="0.09"/>
 		<xacro:property name="wheel_thickness" value="0.04"/>
-		<xacro:property name="wheel_mass" value="0.1"/>
+		<xacro:property name="wheel_mass" value="0.05"/>
 		<!-- Caster wheel -->
 		<xacro:property name="caster_wheel_radius" value="0.0375"/>
 		<xacro:property name="caster_wheel_thickness" value="0.01"/>
-		<xacro:property name="caster_wheel_mass" value="0.02"/>
+		<xacro:property name="caster_wheel_mass" value="0.01"/>
 
 
-		<!-- Chasis -->
-		<link name="${prefix}real_base_link">
-			<!-- <collision>
+        <!-- BASE LINK -->
+        <link name="${prefix}base_link">
+        </link>
+
+
+        <!-- CHASSIS LINK -->
+		<link name="${prefix}chassis">
+			<collision>
 				<origin xyz="${chassis_length/2} 0 ${chassis_height/2}"/>
 				<geometry>
 					<box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
 				</geometry>
-			</collision> -->
+			</collision>
 			<visual>
 				<origin xyz="-0.045 0 0.148" rpy="0 0 0"/>
 				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/chassis.stl"/>
+					<mesh filename="file://$(find galax_description)/meshes/chassis.stl"/>
 				</geometry>
 				<material name="ChassisRed"/>
 			</visual>
 			<xacro:inertial_box mass="${chassis_mass}" x="${chassis_length}" y="${chassis_width}" z="${chassis_height}">
-            	<origin xyz="${-chassis_length} 0 ${-chassis_height}" rpy="0 0 0"/>
+            	<origin xyz="0 0 ${chassis_height/2}" rpy="0 0 0"/>
         	</xacro:inertial_box>
 		</link>
 
-		<gazebo reference="${prefix}real_base_link">
+		<gazebo reference="${prefix}chassis">
 			<material>Gazebo/Red</material>
 		</gazebo>
 		
-		<joint name="${prefix}real_base_link_joint" type="fixed">
+		<joint name="${prefix}chassis_joint" type="fixed">
 			<origin xyz="0 0 0" rpy="0 0 0"/>
 			<parent link="${prefix}base_link"/>
-			<child link="${prefix}real_base_link"/>
+			<child link="${prefix}chassis"/>
 		</joint>
-
 
 		<!-- Top Plate -->
 		<link name="${prefix}top_plate">
-			<!-- <collision>
-				<origin xyz="${top_plate_length/2} 0 ${top_plate_height/2}"/>
-				<geometry>
-					<box size="${top_plate_length} ${top_plate_width} ${top_plate_height}"/>
-				</geometry>
-			</collision> -->
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/top.stl"/>
+					<mesh filename="file://$(find galax_description)/meshes/top.stl"/>
 				</geometry>
 				<material name="TopBlack"/>
 			</visual>
 			<xacro:inertial_box mass="${top_plate_mass}" x="${top_plate_length}" y="${top_plate_width}" z="${top_plate_height}">
-            	<origin xyz="0 0 ${top_plate_height/2}" rpy="0 0 0"/>
+            	<origin xyz="0.045 0 ${top_plate_height/2}" rpy="0 0 0"/>
         	</xacro:inertial_box>
 		</link>
 
@@ -85,7 +81,7 @@
 
 		<joint name="${prefix}base_top_joint" type="fixed">
 			<origin xyz="-0.045 0 0.234" rpy="0 0 0"/>
-			<parent link="${prefix}real_base_link"/>
+			<parent link="${prefix}chassis"/>
 			<child link="${prefix}top_plate"/>
 		</joint>
 
@@ -95,7 +91,7 @@
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/front_sonar.stl"/>
+					<mesh filename="file://$(find galax_description)/meshes/front_sonar.stl"/>
 				</geometry>
 				<material name="SonarYellow"/>
 			</visual>
@@ -112,17 +108,16 @@
 
 		<joint name="${prefix}base_front_joint" type="fixed">
 			<origin xyz="-0.198 0 0.208" rpy="0 0 0"/>
-			<parent link="${prefix}real_base_link"/>
+			<parent link="${prefix}chassis"/>
 			<child link="${prefix}front_sonar"/>
 		</joint>
-
 
 		<!-- Back Sonar -->
 		<link name="${prefix}back_sonar">
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/back_sonar.stl"/>
+					<mesh filename="file://$(find galax_description)/meshes/back_sonar.stl"/>
 				</geometry>
 				<material name="SonarYellow"/>
 			</visual>
@@ -139,23 +134,135 @@
 
 		<joint name="${prefix}base_back_joint" type="fixed">
 			<origin xyz="0.109 0 0.209" rpy="0 0 0"/>
-			<parent link="${prefix}real_base_link"/>
+			<parent link="${prefix}chassis"/>
 			<child link="${prefix}back_sonar"/>
 		</joint>
 
 
-		<!-- Caster Swivel -->
-		<link name="${prefix}caster_swivel">
-			<!-- <collision>
+
+
+
+        <!-- LEFT WHEEL LINK -->
+		<link name="${prefix}left_hub">
+			<visual>
+				<origin xyz="0 0 0" rpy="${-3.1415927/2.0} 0 0"/>
+				<geometry>
+					<cylinder radius="0.09" length="0.01"/>
+				</geometry>
+				<material name="HubcapYellow"/>
+			</visual>
+			<xacro:inertial_cylinder mass="0.001" length="0.01" radius="0.0375">
+				<origin xyz="0 0 0" rpy="${-3.1415927/2.0} 0 0"/>
+			</xacro:inertial_cylinder>
+		</link>
+
+		<gazebo reference="${prefix}left_hub">
+			<material value="Gazebo/Yellow"/>
+		</gazebo>
+
+		<joint name="${prefix}left_hub_joint" type="fixed">
+			<origin xyz="0 0.15 0.08" rpy="0 0 0"/>
+			<parent link="${prefix}chassis"/>
+			<child link="${prefix}left_hub"/>
+			<axis xyz="0 1 0"/>
+		</joint>
+
+		<link name="${prefix}left_wheel">
+			<collision>
 				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/caster_swivel.stl"/>
+					<sphere radius="${wheel_radius}"/>
 				</geometry>
-			</collision> -->
+			</collision>
+			<visual>
+				<origin xyz="0 0 0" rpy="1.5708 0 0"/>
+				<geometry>
+					<mesh filename="file://$(find galax_description)/meshes/left_wheel.stl"/>
+				</geometry>
+				<material name="WheelBlack"/>
+			</visual>
+			<xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+			</xacro:inertial_cylinder>
+		</link>
+
+		<gazebo reference="${prefix}left_wheel">
+			<material value="Gazebo/Black"/>
+            <mu1 value="10000.0"/>
+			<mu2 value="10000.0"/>
+		</gazebo>
+
+		<joint name="${prefix}left_wheel_joint" type="continuous">
+			<origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+			<axis xyz="0 0 1"/>
+			<parent link="${prefix}left_hub"/>
+			<child link="${prefix}left_wheel"/>
+		</joint>
+
+
+        <!-- RIGHT WHEEL LINK -->
+		<link name="${prefix}right_hub">
+			<visual>
+				<origin xyz="0 0 0" rpy="${3.1415927/2.0} 0 0"/>
+				<geometry>
+					<cylinder radius="0.09" length="0.01"/>
+				</geometry>
+				<material name="HubcapYellow"/>
+			</visual>
+			<xacro:inertial_cylinder mass="0.001" length="0.01" radius="0.0375">
+				<origin xyz="0 0 0" rpy="${3.1415927/2.0} 0 0"/>
+			</xacro:inertial_cylinder>
+		</link>
+
+		<gazebo reference="${prefix}right_hub">
+			<material value="Gazebo/Yellow"/>
+		</gazebo>
+
+		<joint name="${prefix}right_hub_joint" type="fixed">
+			<origin xyz="0 -0.15 0.08" rpy="0 0 0"/>
+			<parent link="${prefix}chassis"/>
+			<child link="${prefix}right_hub"/>
+		</joint>
+
+		<link name="${prefix}right_wheel">
+			<collision>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+					<sphere radius="${wheel_radius}"/>
+				</geometry>
+			</collision>
+			<visual>
+				<origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+				<geometry>
+					<mesh filename="file://$(find galax_description)/meshes/right_wheel.stl"/>
+				</geometry>
+				<material name="WheelBlack"/>
+			</visual>
+			<xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+			</xacro:inertial_cylinder>
+		</link>
+
+		<gazebo reference="${prefix}right_wheel">
+			<material value="Gazebo/Black"/>
+            <mu1 value="10000000.0"/>
+			<mu2 value="10000000.0"/>
+		</gazebo>
+
+		<joint name="${prefix}right_wheel_joint" type="continuous">
+			<origin xyz="0 -0.15 0.08" rpy="1.5708 0 0"/>
+			<axis xyz="0 0 -1"/>
+			<parent link="${prefix}chassis"/>
+			<child link="${prefix}right_wheel"/>
+		</joint>
+
+
+        <!-- CASTER WHEEL LINK -->
+		<link name="${prefix}caster_swivel">
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/caster_swivel.stl"/>
+					<mesh filename="file://$(find galax_description)/meshes/caster_swivel.stl"/>
 				</geometry>
 				<material name="ChassisGrey"/>
 			</visual>
@@ -171,24 +278,18 @@
 		</gazebo>
 
 		<joint name="${prefix}base_caster_swivel_joint" type="fixed"> <!--Not fixed. Change for simulation -->
-			<origin xyz="-0.185 0 0.055" rpy="0 0 0"/>
+			<origin xyz="-0.185 0 0.045" rpy="0 0 0"/>
 			<axis xyz="0 0 1"/>
-			<parent link="${prefix}real_base_link"/>
+			<parent link="${prefix}chassis"/>
 			<child link="${prefix}caster_swivel"/>
 		</joint>
 
 		<!-- Hubcap -->
 		<link name="${prefix}caster_hubcap">
-			<!-- <collision>
-				<origin xyz="0 0 0" rpy="0 0 0"/>
-				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/caster_hubcap.stl"/>
-				</geometry>
-			</collision> -->
 			<visual>
 				<origin xyz="0 0 0" rpy="${1.5708} 0 0"/>
 				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/caster_hubcap.stl"/>
+					<mesh filename="file://$(find galax_description)/meshes/caster_hubcap.stl"/>
 				</geometry>
 				<material name="ChassisGrey"/>
 			</visual>
@@ -227,14 +328,14 @@
 				<material name="WheelBlack"/>
 			</visual>
 			<xacro:inertial_cylinder mass="${caster_wheel_mass}" length="${caster_wheel_thickness}" radius="${caster_wheel_radius}">
-				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<origin xyz="0.185 0 0" rpy="0 0 0"/>
 			</xacro:inertial_cylinder>
 		</link>
 
 		<gazebo reference="${prefix}caster_wheel">
 			<material value="Gazebo/White"/>
-			<mu1 value="0.001"/>
-			<mu2 value="0.001"/>
+			<mu1 value="0.00001"/>
+			<mu2 value="0.00001"/>
 		</gazebo>
 
 		<joint name="${prefix}caster_wheel_joint" type="fixed">  <!--Not fixed. Change for simulation -->
@@ -243,129 +344,7 @@
 			<parent link="${prefix}caster_hubcap"/>
 			<child link="${prefix}caster_wheel"/>
 		</joint>
-		
-		<!-- Left Wheel -->
-		<link name="${prefix}left_hub">
-			<!-- <collision>
-				<origin xyz="0 0 0" rpy="${-3.1415927/2.0} 0 0"/>
-				<geometry>
-					<cylinder radius="0.09" length="0.01"/>
-				</geometry>
-			</collision> -->
-			<visual>
-				<origin xyz="0 0 0" rpy="${-3.1415927/2.0} 0 0"/>
-				<geometry>
-					<cylinder radius="0.09" length="0.01"/>
-				</geometry>
-				<material name="HubcapYellow"/>
-			</visual>
-			<xacro:inertial_cylinder mass="0.01" length="0.01" radius="0.0375">
-				<origin xyz="0 0 0" rpy="${-3.1415927/2.0} 0 0"/>
-			</xacro:inertial_cylinder>
-		</link>
 
-		<gazebo reference="${prefix}left_hub">
-			<material value="Gazebo/Yellow"/>
-		</gazebo>
-
-		<joint name="${prefix}left_hub_joint" type="fixed">
-			<origin xyz="0 0.15 0.08" rpy="0 0 0"/>
-			<parent link="${prefix}real_base_link"/>
-			<child link="${prefix}left_hub"/>
-			<axis xyz="0 1 0"/>
-		</joint>
-
-		<link name="${prefix}left_wheel">
-			<collision>
-				<origin xyz="0 0 0" rpy="0 0 0"/>
-				<geometry>
-					<sphere radius="${wheel_radius}"/>
-				</geometry>
-			</collision>
-			<visual>
-				<origin xyz="0 0 0" rpy="1.5708 0 0"/>
-				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/left_wheel.stl"/>
-				</geometry>
-				<material name="WheelBlack"/>
-			</visual>
-			<xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
-				<origin xyz="0 0 0" rpy="0 0 0"/>
-			</xacro:inertial_cylinder>
-		</link>
-
-		<gazebo reference="${prefix}left_wheel">
-			<material value="Gazebo/Black"/>
-		</gazebo>
-
-		<joint name="${prefix}left_wheel_joint" type="continuous">
-			<origin xyz="0 0 0" rpy="-1.5708 0 0"/>
-			<axis xyz="0 0 1"/>
-			<parent link="${prefix}left_hub"/>
-			<child link="${prefix}left_wheel"/>
-		</joint>
-
-
-		<!-- Right Wheel -->
-		<link name="${prefix}right_hub">
-			<!-- <collision>
-				<origin xyz="0 0 0" rpy="${3.1415927/2.0} 0 0"/>
-				<geometry>
-					<cylinder radius="0.09" length="0.01"/>
-				</geometry>
-			</collision> -->
-			<visual>
-				<origin xyz="0 0 0" rpy="${3.1415927/2.0} 0 0"/>
-				<geometry>
-					<cylinder radius="0.09" length="0.01"/>
-				</geometry>
-				<material name="HubcapYellow"/>
-			</visual>
-			<xacro:inertial_cylinder mass="0.01" length="0.01" radius="0.0375">
-				<origin xyz="0 0 0" rpy="${3.1415927/2.0} 0 0"/>
-			</xacro:inertial_cylinder>
-		</link>
-
-		<gazebo reference="${prefix}right_hub">
-			<material value="Gazebo/Yellow"/>
-		</gazebo>
-
-		<joint name="${prefix}right_hub_joint" type="fixed">
-			<origin xyz="0 -0.15 0.08" rpy="0 0 0"/>
-			<parent link="${prefix}real_base_link"/>
-			<child link="${prefix}right_hub"/>
-		</joint>
-
-		<link name="${prefix}right_wheel">
-			<collision>
-				<origin xyz="0 0 0" rpy="0 0 0"/>
-				<geometry>
-					<sphere radius="${wheel_radius}"/>
-				</geometry>
-			</collision>
-			<visual>
-				<origin xyz="0 0 0" rpy="-1.5708 0 0"/>
-				<geometry>
-					<mesh filename="file://$(find amr-ros-config)/meshes/p3dx_meshes/right_wheel.stl"/>
-				</geometry>
-				<material name="WheelBlack"/>
-			</visual>
-			<xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
-				<origin xyz="0 0 0" rpy="0 0 0"/>
-			</xacro:inertial_cylinder>
-		</link>
-
-		<gazebo reference="${prefix}right_wheel">
-			<material value="Gazebo/Black"/>
-		</gazebo>
-
-		<joint name="${prefix}right_wheel_joint" type="continuous">
-			<origin xyz="0 0 0" rpy="1.5708 0 0"/>
-			<axis xyz="0 0 -1"/>
-			<parent link="${prefix}right_hub"/>
-			<child link="${prefix}right_wheel"/>
-		</joint>
-
-	</xacro:macro>
+    </xacro:macro>
 
 </robot>
