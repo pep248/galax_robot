@@ -31,9 +31,9 @@ def generate_launch_description():
 
     # ros2 controller manager
     # ros2_controller will broadcast to the other controllers their configuration. It needs the robot_description parameter, which is passed via the /robot_description topic, published by the robot_state_publisher
-    ros2_controller_params_file = os.path.join(get_package_share_directory(package_name),
+    ros2_controller_params_file = os.path.join(get_package_share_directory('amr-ros-config'),
                                           'config',
-                                          'controller_config.yaml')
+                                          'controller_config_real.yaml')
     ros2_controller = Node(
         package="controller_manager",
         executable="ros2_control_node",

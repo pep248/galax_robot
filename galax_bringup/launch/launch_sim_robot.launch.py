@@ -18,7 +18,7 @@ def generate_launch_description():
 
     package_name='galax_bringup'
 
-    # robot_state_publisher and joint_state_publisher
+    # robot state publisher
     robot_state_publisher = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(package_name),
@@ -28,31 +28,15 @@ def generate_launch_description():
                                   'use_ros2_control': 'false'}.items()
     )
 
-
-    # ros2 controller manager
-    # ros2_controller will broadcast to the other controllers their configuration. It needs the robot_description parameter, which is passed via the /robot_description topic, published by the robot_state_publisher
-    # ros2_controller_params_file = os.path.join(get_package_share_directory(package_name),
-    #                                       'config',
-    #                                       'controller_config.yaml')
-    # ros2_controller = Node(
-    #     package="controller_manager",
-    #     executable="ros2_control_node",
-    #     parameters=[ros2_controller_params_file],
-    #     remappings=[('/controller_manager/robot_description', '/robot_description')],
-    # )
-    # delayed_ros2_controller = TimerAction(
-    #     period=3.0, 
-    #     actions=[ros2_controller]
-    # )
-
-    gazebo_params_file = os.path.join(get_package_share_directory(package_name),'config','gazebo_params.yaml')
+    # Gazebo
+    gazebo_params_file = os.path.join(get_package_share_directory('amr-ros-config'),'config','gazebo_params.yaml')
 
     # Include the Gazebo launch file, provided by the gazebo_ros package
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
             launch_arguments={
-                'world': os.path.join(get_package_share_directory(package_name), 'worlds', 'corridor2.world'),
+                'world': os.path.join(get_package_share_directory(package_name), 'worlds', 'empty.world'),
                 'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file
             }.items()
     )
@@ -60,52 +44,24 @@ def generate_launch_description():
     # Run the spawner node from the gazebo_ros package. The entity name doesn't really matter if you only have a single robot.
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
                         arguments=['-topic', 'robot_description',
-                                   '-entity', 'my_bot'],
+                                   '-entity', 'galax_robot',],
                         output='screen')
-    # delayed_gazebo_spawner = TimerAction(
-    #     period=5.0, 
-    #     actions=[spawn_entity]
-    # )
-        
+
     # joint state broadcaster
     joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster"],
+        arguments=["joint_broad"],
     )
-    # delayed_joint_state_broadcaster = RegisterEventHandler(
-    #     event_handler=OnProcessStart(
-    #         target_action=ros2_controller,
-    #         on_start=[joint_state_broadcaster],
-    #     )
-    # )
-
 
     # diferential controller
-    diff_drive_controller_spawner = Node(
+    diff_drive_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["differential_controller"], # receive the configuration from the ros2_control_node
+        arguments=["diff_cont"], # receive the configuration from the ros2_control_node
     )
-    # delayed_diff_drive_controller_spawner = RegisterEventHandler(
-    #     event_handler=OnProcessStart(
-    #         target_action=ros2_controller,
-    #         on_start=[diff_drive_controller_spawner],)
-    # )
-
-
-    # # Lidar
-    # lidar_node = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource([os.path.join(
-    #         get_package_share_directory('urg_node'),
-    #         'launch',
-    #         'urg_node.launch.py'
-    #     )]),
-    #     launch_arguments={
-    #         'sensor_interface': 'ethernet'
-    #     }.items()
-    # )
-    
+  
+    # rviz2
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -124,8 +80,8 @@ def generate_launch_description():
         # delayed_ros2_controller,
         # delayed_joint_state_broadcaster,
         joint_state_broadcaster,
-        # delayed_diff_drive_controller_spawner,
-        diff_drive_controller_spawner,
+        # delayed_diff_drive_controller,
+        diff_drive_controller,
         gazebo,
         # delayed_gazebo_spawner,
         spawn_entity,
