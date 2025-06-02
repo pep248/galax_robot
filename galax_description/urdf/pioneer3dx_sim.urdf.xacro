@@ -10,7 +10,7 @@
 		<xacro:property name="chassis_length" value="0.41"/>
 		<xacro:property name="chassis_width" value="0.272"/>
 		<xacro:property name="chassis_height" value="0.172"/>
-		<xacro:property name="chassis_mass" value="1.0"/>
+		<xacro:property name="chassis_mass" value="5.0"/>
 		<!-- Top Plate -->
 		<xacro:property name="top_plate_length" value="0.41"/>
 		<xacro:property name="top_plate_width" value="0.272"/>
@@ -19,7 +19,7 @@
 		<!-- Wheels -->
 		<xacro:property name="wheel_radius" value="0.09"/>
 		<xacro:property name="wheel_thickness" value="0.04"/>
-		<xacro:property name="wheel_mass" value="0.05"/>
+		<xacro:property name="wheel_mass" value="0.5"/>
 		<!-- Caster wheel -->
 		<xacro:property name="caster_wheel_radius" value="0.0375"/>
 		<xacro:property name="caster_wheel_thickness" value="0.01"/>
@@ -34,10 +34,10 @@
         <!-- CHASSIS LINK -->
 		<link name="${prefix}chassis">
 			<collision>
-				<origin xyz="${chassis_length/2} 0 ${chassis_height/2}"/>
+				<origin xyz="0 0 ${chassis_height/2}"/>
 				<geometry>
-					<box size="0 0 0"/>
-					<!-- <box size="${chassis_length/4} ${chassis_width/4} ${chassis_height/4}"/> -->
+					<!-- <box size="0 0 0"/> -->
+					<box size="${chassis_length/4} ${chassis_width/4} ${chassis_height/4}"/>
 				</geometry>
 			</collision>
 			<visual>
@@ -314,6 +314,29 @@
 			<axis xyz="0 0 1"/>
 			<parent link="${prefix}chassis"/>
 			<child link="${prefix}caster_wheel"/>
+		</joint>
+
+		<!-- Passive Caster Wheel -->
+		<link name="${prefix}passive_caster_wheel">
+			<collision>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+					<sphere radius="${caster_wheel_radius}"/>
+				</geometry>
+			</collision>
+		</link>
+
+		<gazebo reference="${prefix}passive_caster_wheel">
+			<material value="Gazebo/White"/>
+			<mu1 value="0.00001"/>
+			<mu2 value="0.00001"/>
+		</gazebo>
+
+		<joint name="${prefix}passive_caster_wheel_joint" type="fixed">  <!--Not fixed. Change for simulation -->
+			<origin xyz="${0.2105/2} 0 0.029" rpy="1.5708 0 0"/>
+			<axis xyz="0 0 1"/>
+			<parent link="${prefix}chassis"/>
+			<child link="${prefix}passive_caster_wheel"/>
 		</joint>
 
     </xacro:macro>

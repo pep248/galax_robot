@@ -35,12 +35,12 @@
     <xacro:gazebo_control prefix=""/>
   </xacro:if>
 
+
   <!-- LIDAR -->
   <!-- Mount the lidar -->
   <xacro:include filename="$(find urg_node)/urdf/hokuyo_ust10.urdf.xacro"/>
   <xacro:hokuyo_ust10_mount prefix="hokuyo" topic="scan" parent_link="top_plate">
     <origin xyz="0.16 0 0" rpy="0 0 0"/>
   </xacro:hokuyo_ust10_mount>
-
 
 </robot>
