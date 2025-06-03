@@ -24,8 +24,7 @@ def generate_launch_description():
                     get_package_share_directory(package_name),
                     'launch',
                     'robot_state_publisher.launch.py')]),
-                launch_arguments={'use_sim_time': 'true',
-                                  'use_ros2_control': 'false'}.items()
+                launch_arguments={'use_sim_time': 'true'}.items()
     )
 
     # Gazebo
@@ -85,6 +84,5 @@ def generate_launch_description():
         gazebo,
         # delayed_gazebo_spawner,
         spawn_entity,
-        # lidar_node,
         # rviz_node,
     ])

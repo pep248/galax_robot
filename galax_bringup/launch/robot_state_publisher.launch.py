@@ -12,26 +12,19 @@ import xacro
 
 def generate_launch_description():
 
-    # # Check if we're told to use sim time
-    # use_sim_time = LaunchConfiguration('use_sim_time')
-    # use_ros2_control = LaunchConfiguration('use_ros2_control')
-    # use_mock_hardware = LaunchConfiguration('use_mock_hardware')
     use_sim_time = LaunchConfiguration('use_sim_time')
-    use_ros2_control = LaunchConfiguration('use_ros2_control')
 
-    package_name = 'galax_bringup'
+    package_name = 'galax_description'
     
     # Process the URDF file
     xacro_file = os.path.join(
         get_package_share_directory(package_name),
         'urdf',
-        'galax.urdf.xacro'
+        'galax_robot.urdf.xacro'
     )
 
-    
     # robot_description_config = xacro.process_file(xacro_file).toxml()
     robot_description_config = Command(['xacro ', xacro_file,
-                                    ' use_ros2_control:=', use_ros2_control,
                                     ' sim_mode:=', use_sim_time])
     
     # Create a robot_state_publisher node
@@ -42,20 +35,6 @@ def generate_launch_description():
         # parameters=[{'robot_description': robot_description_config}]
         parameters=[{'robot_description': launch_ros.parameter_descriptions.ParameterValue(robot_description_config, value_type=str) }]
     )
-    
-    # joint_state_pub = Node(
-    #     package="joint_state_publisher",
-    #     executable="joint_state_publisher",
-    #     name="joint_state_publisher",
-    #     parameters=[
-    #         {
-    #             "source_list": [
-    #                 "/joint_states",
-    #             ],
-    #             "rate": 30,
-    #         }
-    #     ],
-    # )
         
     # Launch!
     return LaunchDescription([
@@ -63,10 +42,6 @@ def generate_launch_description():
             'use_sim_time',
             default_value='true',
             description='Use sim time if true'),
-        DeclareLaunchArgument(
-            'use_ros2_control',
-            default_value='true',
-            description='Use ros2_control if true'),
 
         # joint_state_pub,
         node_robot_state_publisher,

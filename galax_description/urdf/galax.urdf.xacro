@@ -8,22 +8,11 @@
 
 
     <!-- ROBOT -->
-    <!-- Add the real robot -->
-    <xacro:unless value="$(arg sim_mode)">
-      <!-- Instantiate the Pioneer3DX -->
-      <xacro:include filename="$(find galax_description)/urdf/pioneer3dx.urdf.xacro"/>
-      <xacro:pioneer3dx prefix="${prefix}">
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-      </xacro:pioneer3dx>
-    </xacro:unless>
-    <!-- Or the simulated robot -->
-    <xacro:if value="$(arg sim_mode)">
-      <!-- Instantiate the Pioneer3DX -->
-      <xacro:include filename="$(find galax_description)/urdf/pioneer3dx_sim.urdf.xacro"/>
-      <xacro:pioneer3dx prefix="${prefix}">
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-      </xacro:pioneer3dx>
-    </xacro:if>
+    <!-- Add the robot -->
+    <xacro:include filename="$(find galax_description)/urdf/pioneer3dx.urdf.xacro"/>
+    <xacro:pioneer3dx prefix="${prefix}">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:pioneer3dx>
 
 
     <!-- CONTROLLER -->

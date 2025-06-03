@@ -40,12 +40,12 @@ void PathPlanningServer::robotPoseCallback()
 {
     // Get the robot pose from the transform listener
     
-    while (!tf_buffer_->canTransform("map", "pioneer3dx_base_link", rclcpp::Time(0), rclcpp::Duration::from_seconds(1.0))) {
-        RCLCPP_INFO(this->get_logger(), "Waiting for transform map -> pioneer3dx_base_link...");
+    while (!tf_buffer_->canTransform("map", "galax_base_link", rclcpp::Time(0), rclcpp::Duration::from_seconds(1.0))) {
+        RCLCPP_INFO(this->get_logger(), "Waiting for transform map -> galax_base_link...");
         rclcpp::sleep_for(std::chrono::milliseconds(1000));
     }
     geometry_msgs::msg::TransformStamped transform;
-    transform = tf_buffer_->lookupTransform("map", "pioneer3dx_base_link", rclcpp::Time(0), rclcpp::Duration::from_seconds(1.0));
+    transform = tf_buffer_->lookupTransform("map", "galax_base_link", rclcpp::Time(0), rclcpp::Duration::from_seconds(1.0));
     this->robot_pose.x = transform.transform.translation.x;
     this->robot_pose.y = transform.transform.translation.y;
 
