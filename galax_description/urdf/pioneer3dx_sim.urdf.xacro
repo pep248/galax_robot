@@ -53,7 +53,7 @@
 		</link>
 
 		<gazebo reference="${prefix}chassis">
-			<material>Gazebo/Red</material>
+			<material value="Gazebo/Red"/>
 		</gazebo>
 		
 		<joint name="${prefix}chassis_joint" type="fixed">
@@ -74,7 +74,7 @@
 		</link>
 
 		<gazebo reference="${prefix}top_plate">
-			<material>Gazebo/Black</material>
+			<material value="Gazebo/Black"/>
 		</gazebo>
 
 		<joint name="${prefix}base_top_joint" type="fixed">
@@ -185,6 +185,7 @@
 		</joint>
 
 
+
         <!-- RIGHT WHEEL LINK -->
 		<link name="${prefix}right_hub">
 			<visual>
@@ -227,8 +228,8 @@
 
 		<gazebo reference="${prefix}right_wheel">
 			<material value="Gazebo/Black"/>
-            <mu1 value="10000000.0"/>
-			<mu2 value="10000000.0"/>
+			<mu1 value="10000.0"/>
+			<mu2 value="10000.0"/>
 		</gazebo>
 
 		<joint name="${prefix}right_wheel_joint" type="continuous">
@@ -239,7 +240,9 @@
 		</joint>
 
 
+
         <!-- CASTER WHEEL LINK -->
+		<!-- Swivel -->
 		<link name="${prefix}caster_swivel">
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0"/>

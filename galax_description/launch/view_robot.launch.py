@@ -25,6 +25,8 @@ def generate_launch_description():
     
     # Create a robot_state_publisher node
     params = {'robot_description': robot_description_config, 'use_sim_time': use_sim_time}
+    
+    # Create a robot_state_publisher node
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -32,17 +34,34 @@ def generate_launch_description():
         parameters=[params]
     )
 
+    # Launch RViz	
+    rviz = Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            output='screen',
+            arguments=['-d', os.path.join(
+                get_package_share_directory(package_name),
+                'rviz',  # Folder containing RViz config (optional)
+                'view_robot.rviz')]  # Optional pre-saved RViz config file
+    )
+
+    # Joint State Publisher GUI to add sliders for joint movement
+    joint_state_gui = Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+            name='joint_state_publisher_gui',
+            output='screen',
+    )
 
     # Launch!
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
-            default_value='false',
-            description='Use sim time if true'),
-        DeclareLaunchArgument(
-            'use_ros2_control',
             default_value='true',
-            description='Use ros2_control if true'),
+            description='Use sim time if true'),
 
-        node_robot_state_publisher
+        node_robot_state_publisher,
+        rviz,
+        joint_state_gui,
     ])

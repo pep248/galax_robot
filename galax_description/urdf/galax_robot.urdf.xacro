@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="galax_robot">
+
+    <xacro:include filename="$(find galax_description)/urdf/galax.urdf.xacro"/>
+
+    <xacro:galax_robot prefix="galax_">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:galax_robot>
+
+</robot>

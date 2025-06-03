@@ -37,8 +37,9 @@ install(
   config
   description
   launch
-  urdf
   meshes
+  rviz
+  urdf
   worlds
   DESTINATION share/${PROJECT_NAME}
 )
