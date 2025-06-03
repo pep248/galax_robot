@@ -35,7 +35,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
             launch_arguments={
-                'world': os.path.join(get_package_share_directory(package_name), 'worlds', 'empty.world'),
+                'world': os.path.join(get_package_share_directory(package_name), 'worlds', 'corridor.world'),
                 'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file
             }.items()
     )
