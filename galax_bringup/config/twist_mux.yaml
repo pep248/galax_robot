@@ -4,7 +4,7 @@ twist_mux:
       dwa:
         topic   : cmd_vel_dwa
         timeout : 0.5
-        priority: 20
+        priority: 15
       keyboard:
         topic   : cmd_vel
         timeout : 0.5
