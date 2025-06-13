@@ -89,7 +89,9 @@ class PathPlanningServer : public rclcpp::Node
         float x_offset;
         float y_offset;
         
-
+        bool is_in_bounds(
+            int x, 
+            int y);
 
 
 

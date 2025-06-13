@@ -112,39 +112,20 @@ void PathPlanningServer::handle_request(
 
       RCLCPP_INFO(this->get_logger(), "Init index = %f, %f", init_index.point.x, init_index.point.y);
 
+      if (!is_in_bounds(goal_index.point.x, goal_index.point.y)) {
+        RCLCPP_ERROR(this->get_logger(), "Goal index (%f, %f) is out of map bounds!", goal_index.point.x, goal_index.point.y);
+        return;
+      }
+      if (!is_in_bounds(init_index.point.x, init_index.point.y)) {
+        RCLCPP_ERROR(this->get_logger(), "Start index (%f, %f) is out of map bounds!", init_index.point.x, init_index.point.y);
+        return;
+      }
+
       RCLCPP_INFO(this->get_logger(), "Computing cost_map");
 
       this->update_cost_map(
         goal_index.point.x,
         goal_index.point.y);
-
-      // int width = this->map.size();
-      // int height = this->map[0].size();
-
-      // Print the map data
-      // for (int i = 0; i < height; ++i)
-      // {
-      //   for (int j = 0; j < width; ++j)
-      //   {
-      //       if (i % 10 == 0 && j % 10 == 0)
-      //       { // Print every 10th row and column
-      //           RCLCPP_INFO(this->get_logger(), "cost_map[%d][%d] = %d", i, j, this->cost_map[i][j]);
-      //       }
-      //   }
-      // }   
-
-      // int height = this->map.size();
-      // int width = this->map[0].size();
-      // for (int i = 0; i < height; ++i)
-      // {
-      //   for (int j = 0; j < width; ++j)
-      //   {
-      //       if (i % 10 == 0 && j % 10 == 0)
-      //       { // Print every 10th row and column
-      //           RCLCPP_INFO(this->get_logger(), "cost_map[%d][%d] = %d", i, j, this->cost_map[i][j]);
-      //       }
-      //   }
-      // }   
 
       std::vector<std::vector<int>> index_path = this->find_path_in_costpam(
         init_index.point.x,
@@ -169,10 +150,10 @@ void PathPlanningServer::handle_request(
           path.poses.push_back(pose);
       }
 
-      // Take only 1 out of each 50 entries in the path
+      // Take only 1 out of each 10 entries in the path
       nav_msgs::msg::Path reduced_path;
       reduced_path.header = path.header;
-      for (size_t i = 0; i < path.poses.size(); i += 50)
+      for (size_t i = 0; i < path.poses.size(); i += 10)
       {
           reduced_path.poses.push_back(path.poses[i]);
       }
@@ -345,8 +326,8 @@ std::vector<std::vector<int>> PathPlanningServer::find_path_in_costpam(
     // Create goal cell vector for comparison
     std::vector<int> goal_cell = {goal_x_index, goal_y_index};
 
-    RCLCPP_INFO(this->get_logger(), "start_cell = %d, %d", start_cell[0], start_cell[1]);
-    RCLCPP_INFO(this->get_logger(), "goal_cell = %d, %d", goal_cell[1], goal_cell[1]);
+    RCLCPP_INFO(this->get_logger(), "start_cell = %i, %i", start_cell[0], start_cell[1]);
+    RCLCPP_INFO(this->get_logger(), "goal_cell = %i, %i", goal_cell[0], goal_cell[1]);
 
     int width = this->map.size();
     int height = this->map[0].size();
@@ -462,5 +443,15 @@ bool PathPlanningServer::is_point_in_polygon(
   }
   
   return inside;
+}
+
+
+bool PathPlanningServer::is_in_bounds(
+  int x, 
+  int y)
+{
+    int width = this->map.size();
+    int height = this->map[0].size();
+    return x >= 0 && y >= 0 && x < width && y < height;
 }
 
