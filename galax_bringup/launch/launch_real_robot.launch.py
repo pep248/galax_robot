@@ -31,7 +31,7 @@ def generate_launch_description():
 
     # ros2 controller manager
     # ros2_controller will broadcast to the other controllers their configuration. It needs the robot_description parameter, which is passed via the /robot_description topic, published by the robot_state_publisher
-    ros2_controller_params_file = os.path.join(get_package_share_directory('amr-ros-config'),
+    ros2_controller_params_file = os.path.join(get_package_share_directory('galax_description'),
                                           'config',
                                           'controller_config_real.yaml')
     ros2_controller = Node(
@@ -50,7 +50,7 @@ def generate_launch_description():
     joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        arguments=["joint_broad", "--controller-manager", "/controller_manager"],
     )
     delayed_joint_state_broadcaster = RegisterEventHandler(
         event_handler=OnProcessStart(
@@ -64,7 +64,7 @@ def generate_launch_description():
     diff_drive_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["differential_controller", "--controller-manager", "/controller_manager"], # receive the configuration from the ros2_control_node
+        arguments=["diff_cont", "--controller-manager", "/controller_manager"], # receive the configuration from the ros2_control_node
     )
     delayed_diff_drive_controller_spawner = RegisterEventHandler(
         event_handler=OnProcessStart(

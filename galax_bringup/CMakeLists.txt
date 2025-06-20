@@ -13,7 +13,7 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(amr-ros-config REQUIRED)
+find_package(galax_description REQUIRED)
 find_package(urg_node REQUIRED)
 find_package(diffdrive_arduino REQUIRED)
 find_package(gazebo_ros REQUIRED)
@@ -59,7 +59,6 @@ install(
   DIRECTORY
     config
     rviz
-    urdf
     worlds
   DESTINATION
     share/${PROJECT_NAME}

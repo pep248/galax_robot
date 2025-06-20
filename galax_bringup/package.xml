@@ -13,7 +13,7 @@
   <depend>rclcpp</depend>
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
-  <depend>amr-ros-config</depend>
+  <depend>galax_description</depend>
   <depend>urg_node</depend>
   <depend>diffdrive_arduino</depend>
   <depend>pluginlib</depend>

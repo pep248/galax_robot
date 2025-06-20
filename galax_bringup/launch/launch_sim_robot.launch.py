@@ -28,7 +28,7 @@ def generate_launch_description():
     )
 
     # Gazebo
-    gazebo_params_file = os.path.join(get_package_share_directory('amr-ros-config'),'config','gazebo_params.yaml')
+    gazebo_params_file = os.path.join(get_package_share_directory('galax_description'),'config','gazebo_params.yaml')
 
     # Include the Gazebo launch file, provided by the gazebo_ros package
     gazebo = IncludeLaunchDescription(
