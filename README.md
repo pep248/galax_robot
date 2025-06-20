@@ -168,28 +168,6 @@ Ahora que lo tienes todo configurado, cada vez que quieras lanzar el robot será
    4. Lanzar el robot simulado junto a la demo de navegación:
       `ros2 launch galax_navigation launch_navigation.launch.py`
 
-docker run -it --rm --name galax_robot_container --network host --privileged --device /dev --volume /dev:/dev --volume /run/udev:/run/udev --volume /var/run/dbus:/var/run/dbus --volume /etc/localtime:/etc/localtime:ro --volume /tmp/.X11-unix:/tmp/.X11-unix --volume /etc/localtime:/etc/localtime:ro --env DISPLAY=192.168.137.1:0.0 pep248/galax_robot:base_image
+<!-- docker run -it --rm --name galax_robot_container --network host --privileged --device /dev --volume /dev:/dev --volume /run/udev:/run/udev --volume /var/run/dbus:/var/run/dbus --volume /etc/localtime:/etc/localtime:ro --volume /tmp/.X11-unix:/tmp/.X11-unix --volume /etc/localtime:/etc/localtime:ro --env DISPLAY=192.168.137.1:0.0 pep248/galax_robot:base_image
 
-
-
-
-docker run -it --name galax_robot_container --network host --privileged --device /dev --volume /dev:/dev galax_robot:base_image
-docker commit galax_robot_container galax_robot:base_image
-![alt text](img/markt.png)
-
-
-docker run -it --name galax_robot_container --network host --privileged --device /dev --volume /dev:/dev --volume /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY galax_robot:base_image
-
-docker run -it ^
-  --name galax_robot_container ^
-  --net=host ^
-  --privileged ^
-  -e DISPLAY=172.20.0.1
-  galax_robot:base_image
-
-
-
-
-collection of packages to control a pioneer3 robot
-
-find ./src/ -type f -exec dos2unix {} +
+find ./src/ -type f -exec dos2unix {} + -->
