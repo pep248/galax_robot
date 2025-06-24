@@ -1,4 +1,15 @@
 #include <path_planning_package/path_planner_class.hpp>
+#include <queue>
+#include <unordered_map>
+#include <tuple>
+#include <cmath>
+
+// Helper for hashing a pair of ints (for unordered_map)
+struct PairHash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        return std::hash<int>()(p.first) ^ (std::hash<int>()(p.second) << 1);
+    }
+};
 
 
 PathPlanningServer::PathPlanningServer() : Node("path_planning_server")
@@ -282,9 +293,9 @@ void PathPlanningServer::update_cost_map(
   const int x_index,
   const int y_index)
 {
-  int width = this->map.size(); //TEST
-  int height = this->map[0].size(); //TEST
- 
+  int width = this->map.size();
+  int height = this->map[0].size();
+
   // Resize the class member "cost_map" to the required dimensions
   this->cost_map.resize(width, std::vector<int>(height));
 
@@ -293,18 +304,20 @@ void PathPlanningServer::update_cost_map(
   {
       for (int j = 0; j < height; ++j)
       {
-        this->cost_map[i][j] = this->map[i][j];  // Store in the class member "cost_map"
+        this->cost_map[i][j] = this->map[i][j];
       }
   }
 
-  // iterate through each cell of the costmap and add the distance between the current cell and the goal cell
+  // Wall proximity penalty
+
+  
+  // Add goal distance cost as before
   for (int i = 0; i < width; ++i)
   {
       for (int j = 0; j < height; ++j)
       {
-          // Calculate the distance between the current cell and the goal cell
           int distance = std::abs(i - x_index) + std::abs(j - y_index);
-          this->cost_map[i][j] = this->cost_map[i][j] + distance*2;  // Store in the class member "cost_map"
+          this->cost_map[i][j] = this->cost_map[i][j] + distance*2;
       }
   }
 }
@@ -316,111 +329,76 @@ std::vector<std::vector<int>> PathPlanningServer::find_path_in_costpam(
   const int goal_x_index,
   const int goal_y_index)
 {
-    std::vector<std::vector<int>> index_path;
-
-    // Add the start cell to the queue
-    std::vector<int> start_cell = {start_x_index, start_y_index};
-
-    index_path.push_back(start_cell);
-
-    // Create goal cell vector for comparison
-    std::vector<int> goal_cell = {goal_x_index, goal_y_index};
-
-    RCLCPP_INFO(this->get_logger(), "start_cell = %i, %i", start_cell[0], start_cell[1]);
-    RCLCPP_INFO(this->get_logger(), "goal_cell = %i, %i", goal_cell[0], goal_cell[1]);
+    using Node = std::pair<int, int>;
+    using PQElement = std::tuple<int, int, int>; // (priority, x, y)
 
     int width = this->map.size();
     int height = this->map[0].size();
 
-    // While goal not in index_path
-    while (std::find(index_path.begin(), index_path.end(), goal_cell) == index_path.end())
-    {
-        // Get the first element from the queue
-        std::vector<int> current_cell = index_path.back();
+    auto in_bounds = [&](int x, int y) {
+        return x >= 0 && y >= 0 && x < width && y < height;
+    };
 
-        
-        // Get the neighbors of the current cell
-        std::vector<std::vector<int>> neighbors = {
-            {current_cell[0] - 1, current_cell[1]},
-            {current_cell[0] + 1, current_cell[1]},
-            {current_cell[0], current_cell[1] - 1},
-            {current_cell[0], current_cell[1] + 1}
-        };
+    auto heuristic = [&](int x, int y) {
+        // Manhattan distance
+        return std::abs(x - goal_x_index) + std::abs(y - goal_y_index);
+    };
 
-        std::vector<int> min_neighbor = {};
-        int min_cost = std::numeric_limits<int>::max();
-        // RCLCPP_INFO(this->get_logger(), "width: %d, height: %d", width, height);
-        for (const auto& neighbor : neighbors)
-        {
-            // Check if the neighbor is already in the index_path
-            if (std::find(index_path.begin(), index_path.end(), neighbor) != index_path.end())
-            {
-                continue;
+    std::priority_queue<PQElement, std::vector<PQElement>, std::greater<PQElement>> open_set;
+    std::unordered_map<Node, Node, PairHash> came_from;
+    std::unordered_map<Node, int, PairHash> cost_so_far;
+
+    Node start = {start_x_index, start_y_index};
+    Node goal = {goal_x_index, goal_y_index};
+
+    open_set.emplace(heuristic(start_x_index, start_y_index), start_x_index, start_y_index);
+    cost_so_far[start] = 0;
+
+    std::vector<Node> directions = {
+        {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+    };
+
+    while (!open_set.empty()) {
+        auto [priority, x, y] = open_set.top();
+        open_set.pop();
+        Node current = {x, y};
+
+        if (current == goal) {
+            // Reconstruct path
+            std::vector<std::vector<int>> path;
+            Node node = goal;
+            while (node != start) {
+                path.push_back({node.first, node.second});
+                node = came_from[node];
             }
-            // RCLCPP_INFO(this->get_logger(), "cost: %d, neighbor: %d, %d", this->cost_map[neighbor[0]][neighbor[1]], neighbor[0], neighbor[1]);
-            // Find cheapest neighbor in the cost_map
-            if (neighbor[0] >= 0 && neighbor[1] >= 0 && 
-                neighbor[0] < width && neighbor[1] < height &&
-                this->cost_map[neighbor[0]][neighbor[1]] < min_cost)
-            {
-                // RCLCPP_INFO(this->get_logger(), "min_neighbor %d, %d", neighbor[0], neighbor[1]);
-                min_cost = this->cost_map[neighbor[0]][neighbor[1]];
-                min_neighbor = neighbor;
-            }
+            path.push_back({start.first, start.second});
+            std::reverse(path.begin(), path.end());
+            return path;
         }
 
-        // Add the neighbor to the index_path
-        index_path.push_back(min_neighbor);
-        // RCLCPP_INFO(this->get_logger(), "Neighbor added= %d, %d", min_neighbor[0], min_neighbor[1]);
+        for (const auto& dir : directions) {
+            int nx = x + dir.first;
+            int ny = y + dir.second;
+            Node neighbor = {nx, ny};
 
-        // // Loop over the neighbors
-        // for (auto neighbor : neighbors)
-        // {
-        //   int row = neighbor[0];
-        //   int col = neighbor[1];
-        //   // RCLCPP_INFO(this->get_logger(), "Evaluated Neighbor = %d, %d", neighbor[0], neighbor[1]);
-        //   // Check if the neighbor is within the bounds of the map
-        //   // RCLCPP_INFO(this->get_logger(), "width = %d, height = %d", width, height);
-        //   if (row >= 0 && col >= 0 && row < width && col < height)
-        //   {
-        //     // RCLCPP_INFO(this->get_logger(), "Neighbor is in the map");
-        //     // Check if the neighbor is not an obstacle
-        //     // RCLCPP_INFO(this->get_logger(), "map = %d", this->map[col][row]);
-        //     if (this->map[col][row] != 100)
-        //     {
-        //       // RCLCPP_INFO(this->get_logger(), "Neighbor is not an obstacle");
-        //       // Check if the neighbor is not already in the index_path
-        //       if (std::find(index_path.begin(), index_path.end(), neighbor) == index_path.end())
-        //       {
-        //         // RCLCPP_INFO(this->get_logger(), "Neighbor not already in path");
-        //         // Check if the neighbor is not already in the queue
-        //         if (std::find(queue.begin(), queue.end(), neighbor) == queue.end())
-        //         {
-        //           // RCLCPP_INFO(this->get_logger(), "Neighbor not already in queue");
-        //           // Add the neighbor to the queue
-        //           queue.push_back(neighbor);
-        //           RCLCPP_INFO(this->get_logger(), "Neighbor added= %d, %d", neighbor[0], neighbor[1]);
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
+            if (!in_bounds(nx, ny))
+                continue;
+            if (this->map[nx][ny] == 100) // skip obstacles
+                continue;
 
-        // // sort the queue putting at the beggining the cell with the lowest cost in the cost_map
-        // std::sort(queue.begin(), queue.end(), 
-        //     [this](const std::vector<int>& a, const std::vector<int>& b) {
-        //         return this->cost_map[a[1]][a[0]] < this->cost_map[b[1]][b[0]];
-        //     }
-        // );
-        // Print the queue cost_map cost
-        // for (auto cell : queue)
-        // {
-        //   RCLCPP_INFO(this->get_logger(), "Queue cost_map cost = %d", this->cost_map[cell[1]][cell[0]]);
-        // }
-
+            int new_cost = cost_so_far[current] + this->cost_map[nx][ny];
+            if (!cost_so_far.count(neighbor) || new_cost < cost_so_far[neighbor]) {
+                cost_so_far[neighbor] = new_cost;
+                int priority = new_cost + heuristic(nx, ny);
+                open_set.emplace(priority, nx, ny);
+                came_from[neighbor] = current;
+            }
+        }
     }
 
-    return index_path;
+    // If we get here, no path was found
+    RCLCPP_WARN(this->get_logger(), "A* failed to find a path.");
+    return {};
 }
 
 
