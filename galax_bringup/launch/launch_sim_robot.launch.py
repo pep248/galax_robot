@@ -35,7 +35,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
             launch_arguments={
-                'world': os.path.join(get_package_share_directory(package_name), 'worlds', 'test0.world'),
+                'world': os.path.join(get_package_share_directory(package_name), 'worlds', 'test3.world'),
                 'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file
             }.items()
     )
@@ -87,4 +87,4 @@ def generate_launch_description():
         # rviz_node,
     ])
     
-# ros2 bag record /clock /diff_cont/cmd_vel_unstamped /goal_reached /dwa_parameters /tf /tf_static -o test0
+# ros2 bag record /clock /diff_cont/cmd_vel_unstamped /goal_reached /dwa_parameters /tf /tf_static --use-sim-time -o test3
